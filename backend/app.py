@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from data_loader import load_role_skills
 from skill_loader import load_skills
@@ -6,6 +7,13 @@ from scoring import calculate_readiness
 from roadmap import generate_roadmap
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 role_skills = load_role_skills("../database/role_skills.csv")
 skills = load_skills("../database/skills.csv")

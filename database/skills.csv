@@ -1,0 +1,21 @@
+skill_id,skill_name
+1,Python
+2,SQL
+3,Excel
+4,Pandas
+5,NumPy
+6,Machine Learning
+7,Deep Learning
+8,PyTorch
+9,TensorFlow
+10,Spark
+11,Docker
+12,AWS
+13,Git
+14,JavaScript
+15,React
+16,Node.js
+17,HTML
+18,CSS
+19,Statistics
+20,Data Visualization

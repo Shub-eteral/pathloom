@@ -19,7 +19,7 @@ const API_BASE = "http://127.0.0.1:8000";
 function GlobalStyles() {
   return (
     <style>{`
-      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght=500;600;700&family=IBM+Plex+Sans:wght=400;500;600;700&family=IBM+Plex+Mono:wght=500;600&display=swap');
 
       .pl-root {
         --canvas: #F5F6F9;
@@ -390,10 +390,59 @@ function App() {
   const [studyDegree, setStudyDegree] = useState("");
   const [targetCareer, setTargetCareer] = useState("");
   
-  // Day 15 Part 1: Academic Profile States
+  // Academic Profile States
   const [degreeLevel, setDegreeLevel] = useState("");
   const [gpaScale, setGpaScale] = useState("10");
   const [gpaScore, setGpaScore] = useState("");
+  
+  // Standardized Testing Exam scores state object
+  const [examScores, setExamScores] = useState({ IELTS: "", GRE: "", JLPT: "" });
+
+  // University Search State & Target Selected University Profile State
+  const [universitySearch, setUniversitySearch] = useState("");
+  const [selectedUniversity, setSelectedUniversity] = useState(null);
+
+  const [skillSearch, setSkillSearch] = useState("");
+  const [result, setResult] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState(null);
+  const [analyzeError, setAnalyzeError] = useState(null);
+  const [recommendError, setRecommendError] = useState(null);
+  const [recommendations, setRecommendations] = useState([]);
+  const [comparisonData, setComparisonData] = useState([]);
+  const [bestCareer, setBestCareer] = useState(null);
+
+  const [careerInfo, setCareerInfo] = useState({});
+  const [explanations, setExplanations] = useState({});
+  const [insights, setInsights] = useState({});
+
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Central Core Eligibility Engine Method
+  const getEligibilityResult = (university) => {
+    const gpa = parseFloat(gpaScore || 0);
+    const ielts = parseFloat(examScores?.["IELTS"] || 0);
+    const gre = parseFloat(examScores?.["GRE"] || 0);
+    const jlpt = examScores?.["JLPT"] || "";
+
+    const requirements = university.requirements || {};
+    const requiredGpa = gpaScale === "10" ? requirements.gpa10 : requirements.gpa4;
+
+    if (requiredGpa && gpa < requiredGpa) {
+      return { eligible: false, reason: `Minimum GPA required: ${requiredGpa}` };
+    }
+    if (requirements.ielts && ielts < requirements.ielts) {
+      return { eligible: false, reason: `Minimum IELTS required: ${requirements.ielts}` };
+    }
+    if (requirements.gre && gre < requirements.gre) {
+      return { eligible: false, reason: `Minimum GRE required: ${requirements.gre}` };
+    }
+    if (requirements.jlpt && jlpt !== requirements.jlpt) {
+      return { eligible: false, reason: `JLPT ${requirements.jlpt} required` };
+    }
+    return { eligible: true, reason: "Eligible" };
+  };
 
   // Guarded Role & Skill Sync
   useEffect(() => {
@@ -416,29 +465,18 @@ function App() {
     localStorage.setItem("pathloom_country", studyCountry);
     localStorage.setItem("pathloom_degree", studyDegree);
     
-    // Day 15 Part 3: Save Academic Profile configurations
     localStorage.setItem("pathloom_degree_level", degreeLevel);
     localStorage.setItem("pathloom_gpa_scale", gpaScale);
     localStorage.setItem("pathloom_gpa_score", gpaScore);
     localStorage.setItem("pathloom_target_career", targetCareer);
-  }, [studyCountry, studyDegree, degreeLevel, gpaScale, gpaScore, targetCareer, isHydrated]);
+    localStorage.setItem("pathloom_exam_scores", JSON.stringify(examScores));
+  }, [studyCountry, studyDegree, degreeLevel, gpaScale, gpaScore, targetCareer, examScores, isHydrated]);
 
-  const [skillSearch, setSkillSearch] = useState("");
-  const [result, setResult] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadError, setLoadError] = useState(null);
-  const [analyzeError, setAnalyzeError] = useState(null);
-  const [recommendError, setRecommendError] = useState(null);
-  const [recommendations, setRecommendations] = useState([]);
-  const [comparisonData, setComparisonData] = useState([]);
-  const [bestCareer, setBestCareer] = useState(null);
-
-  const [careerInfo, setCareerInfo] = useState({});
-  const [explanations, setExplanations] = useState({});
-  const [insights, setInsights] = useState({});
-
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  // Clear sub-selections when country shifts
+  useEffect(() => {
+    setUniversitySearch("");
+    setSelectedUniversity(null);
+  }, [studyCountry]);
 
   // Central Core Startup/Restoration Block
   useEffect(() => {
@@ -468,6 +506,11 @@ function App() {
           setDegreeLevel(localStorage.getItem("pathloom_degree_level") || "");
           setGpaScale(localStorage.getItem("pathloom_gpa_scale") || "10");
           setGpaScore(localStorage.getItem("pathloom_gpa_score") || "");
+
+          const savedExamScores = localStorage.getItem("pathloom_exam_scores");
+          if (savedExamScores) {
+            setExamScores(JSON.parse(savedExamScores));
+          }
 
           const savedCareer = localStorage.getItem("pathloom_target_career");
           if (savedCareer) {
@@ -523,6 +566,7 @@ function App() {
       degree_level: degreeLevel,
       gpa_scale: gpaScale,
       gpa_score: gpaScore,
+      exam_scores: examScores,
       target_career: targetCareer,
       exported_at: new Date().toISOString(),
     };
@@ -556,6 +600,7 @@ function App() {
         if (profile.degree_level) setDegreeLevel(profile.degree_level);
         if (profile.gpa_scale) setGpaScale(profile.gpa_scale);
         if (profile.gpa_score) setGpaScore(profile.gpa_score);
+        if (profile.exam_scores) setExamScores(profile.exam_scores);
         if (profile.target_career) setTargetCareer(profile.target_career);
 
         alert("Profile imported successfully!");
@@ -572,6 +617,13 @@ function App() {
     setSelectedSkills((prev) =>
       prev.includes(id) ? prev.filter((existingId) => existingId !== id) : [...prev, id]
     );
+  };
+
+  const handleExamScoreChange = (exam, value) => {
+    setExamScores((prev) => ({
+      ...prev,
+      [exam]: value,
+    }));
   };
 
   const analyzeCareer = async () => {
@@ -710,6 +762,9 @@ function App() {
     setDegreeLevel("");
     setGpaScale("10");
     setGpaScore("");
+    setExamScores({ IELTS: "", GRE: "", JLPT: "" });
+    setUniversitySearch("");
+    setSelectedUniversity(null);
     setResult(null);
     setAnalyzeError(null);
     setRecommendError(null);
@@ -743,18 +798,14 @@ function App() {
     ? "online"
     : "connecting";
 
-  
   const getRecommendedProgram = (university) => {
     const match = university.programs.find(
       (program) => program.career === targetCareer
     );
-
-    return match
-      ? match.course
-      : "No matching program";
+    return match ? match.course : "No matching program";
   };
 
-const connectionLabel =
+  const connectionLabel =
     connectionStatus === "offline" ? "Server offline" :
     connectionStatus === "connecting" ? "Connecting…" : "Connected";
 
@@ -1229,10 +1280,10 @@ const connectionLabel =
             <h2 className="text-3xl font-bold mb-4">🎓 Study Planner</h2>
             <p className="text-slate-600 mb-6">Plan your global education journey based on your unique profile metrics.</p>
 
-            {/* Day 15 Part 2: Academic Profile Form Element */}
+            {/* Academic Profile Form Element */}
             <div className="pl-panel p-6 mt-6">
               <h2 className="text-2xl font-bold mb-6">🎓 Academic Profile</h2>
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-3 gap-4">
                 {/* Degree Selection Component */}
                 <div>
                   <label className="block mb-2 font-medium">Degree Level</label>
@@ -1263,7 +1314,7 @@ const connectionLabel =
 
                 {/* GPA Continuous Input Numeric Selector field */}
                 <div>
-                  <label className="block mb-2 font-medium">GPA</label>
+                  <label className="block mb-2 font-medium">GPA Score</label>
                   <input
                     type="number"
                     step="0.01"
@@ -1274,27 +1325,68 @@ const connectionLabel =
                   />
                 </div>
               </div>
+
+              {/* Standardized Exam Scores Inputs Component */}
+              <div className="mt-6 border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">✍️ Standardized Exam Scores</h3>
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block mb-2 text-sm font-medium">IELTS Band Score</label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="0"
+                      max="9"
+                      value={examScores.IELTS}
+                      onChange={(e) => handleExamScoreChange("IELTS", e.target.value)}
+                      placeholder="e.g. 7.5"
+                      className="w-full p-3 border rounded-lg pl-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-2 text-sm font-medium">GRE Score</label>
+                    <input
+                      type="number"
+                      min="260"
+                      max="340"
+                      value={examScores.GRE}
+                      onChange={(e) => handleExamScoreChange("GRE", e.target.value)}
+                      placeholder="e.g. 320"
+                      className="w-full p-3 border rounded-lg pl-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-2 text-sm font-medium">JLPT Level</label>
+                    <select
+                      value={examScores.JLPT}
+                      onChange={(e) => handleExamScoreChange("JLPT", e.target.value)}
+                      className="w-full p-3 border rounded-lg pl-mono"
+                    >
+                      <option value="">Select Level</option>
+                      <option value="N1">N1</option>
+                      <option value="N2">N2</option>
+                      <option value="N3">N3</option>
+                      <option value="N4">N4</option>
+                      <option value="N5">N5</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Global Geographic and Academic Pathway Destination Track Selectors */}
-
-            <div className="mb-6">
+            <div className="mb-6 mt-6">
               <label className="block mb-2 font-medium">
                 Target Career
               </label>
-
               <select
                 value={targetCareer}
                 onChange={(e) => setTargetCareer(e.target.value)}
                 className="w-full p-3 border rounded-lg"
               >
                 <option value="">Select Career</option>
-
                 {roles.map((role) => (
-                  <option
-                    key={role.role_id}
-                    value={role.role_name}
-                  >
+                  <option key={role.role_id} value={role.role_name}>
                     {role.role_name}
                   </option>
                 ))}
@@ -1333,7 +1425,7 @@ const connectionLabel =
               </div>
             </div>
 
-            {/* Task 4.4: Dynamic Country Intelligence Analytics Profile Overlay Card */}
+            {/* Dynamic Country Intelligence Analytics Profile Overlay Card */}
             {studyCountry && (
               <div className="mt-6 bg-white rounded-xl shadow p-5 border border-slate-100">
                 <h3 className="text-xl font-bold mb-4">🌍 Country Intelligence</h3>
@@ -1350,7 +1442,6 @@ const connectionLabel =
                   ))
                 }
               </div>
-
             )}
 
             {targetCareer && studyCountry && (
@@ -1359,33 +1450,68 @@ const connectionLabel =
                   🎯 Career-Aligned Programs
                 </h2>
 
+                {/* Step 2: Live University Matching Engine Text Search Field Input Component */}
+                <input
+                  type="text"
+                  placeholder="Search universities..."
+                  value={universitySearch}
+                  onChange={(e) => setUniversitySearch(e.target.value)}
+                  className="w-full p-3 border rounded-lg mb-6"
+                />
+
+                {/* Step 3: Combined Geographic Filter & Text Input Search Regex Matching Engine */}
                 {universities
-                  .filter((u) => u.country === studyCountry)
-                  .map((u) => (
-                    <div
-                      key={u.id}
-                      className="border rounded-lg p-4 mb-4"
-                    >
-                      <h3 className="font-bold">
-                        {u.name}
-                      </h3>
+                  .filter(
+                    (u) =>
+                      u.country === studyCountry &&
+                      u.name.toLowerCase().includes(universitySearch.toLowerCase())
+                  )
+                  .map((u) => {
+                    const eligibility = getEligibilityResult(u);
 
-                      <p>
-                        QS Rank: {u.qs_rank}
-                      </p>
+                    return (
+                      <div 
+                        key={u.id} 
+                        onClick={() => setSelectedUniversity(u)}
+                        className={`border rounded-lg p-4 mb-4 cursor-pointer transition-colors ${
+                          selectedUniversity?.id === u.id 
+                            ? "border-indigo-600 bg-indigo-50/40" 
+                            : "hover:bg-slate-50 border-slate-200"
+                        }`}
+                      >
+                        <h3 className="font-bold">{u.name}</h3>
+                        <p className={`font-bold ${eligibility.eligible ? "text-green-600" : "text-red-600"}`}>
+                          {eligibility.eligible ? "✅ Eligible" : "❌ Not Eligible"}
+                        </p>
+                        <p className="text-sm text-slate-600">{eligibility.reason}</p>
+                        <p>QS Rank: {u.qs_rank}</p>
+                        <p>Recommended Course: {getRecommendedProgram(u)}</p>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
 
-                      <p>
-                        Recommended Course: {getRecommendedProgram(u)}
-                      </p>
-                    </div>
-                  ))}
+            {/* Step 6: Dynamic Selected Institution Deep Data Intelligence Extraction Component Card */}
+            {selectedUniversity && (
+              <div className="mt-8 pl-panel p-6">
+                <h2 className="text-2xl font-bold mb-4">
+                  🏫 University Intelligence
+                </h2>
+                <div className="space-y-2 font-medium text-slate-700">
+                  <p>Name: {selectedUniversity.name}</p>
+                  <p>Country: {selectedUniversity.country}</p>
+                  <p>QS Rank: {selectedUniversity.qs_rank}</p>
+                  <p>Tuition: ${selectedUniversity.tuition}/year</p>
+                  <p>Scholarships: {selectedUniversity.scholarships ? "Available" : "No"}</p>
+                  <p>Employment Score: {selectedUniversity.employment_score}/10</p>
+                </div>
               </div>
             )}
 
             <div className="mt-6 p-4 rounded-lg bg-slate-100">
               <h3 className="font-semibold mb-2">Coming Soon</h3>
               <ul className="list-disc ml-5 text-sm space-y-1 text-slate-600">
-                <li>University Recommendations</li>
                 <li>Scholarship Matching</li>
                 <li>Country Comparison</li>
                 <li>Admission Roadmaps</li>

@@ -10,6 +10,7 @@ from scoring import calculate_readiness
 from roadmap import generate_roadmap
 from recommender import recommend_roles
 from career_loader import load_career_info
+from comparison import compare_roles
 
 # Resolve paths relative to this file's location
 BASE_DIR = Path(__file__).resolve().parent
@@ -173,3 +174,27 @@ def insight(
     return {
         "insight": insight_text
     }
+
+@app.get("/compare")
+def compare(
+    role_ids: str,
+    skills_input: str
+):
+
+    user_skills = [
+        skill.strip()
+        for skill in skills_input.split(",")
+    ]
+
+    roles_to_compare = [
+        role.strip()
+        for role in role_ids.split(",")
+    ]
+
+    return compare_roles(
+        roles_to_compare,
+        user_skills,
+        roles,
+        role_skills,
+        career_info
+    )

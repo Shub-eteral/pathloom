@@ -15,7 +15,7 @@ const API_BASE = "http://127.0.0.1:8000";
 function GlobalStyles() {
   return (
     <style>{`
-      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght=500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght=500;600&display=swap');
 
       .pl-root {
         --canvas: #F5F6F9;
@@ -485,6 +485,54 @@ function App() {
     };
   }, []);
 
+  /* ---------- Profile Export Utility ---------- */
+  const exportProfile = () => {
+    const profile = {
+      target_role: selectedRole,
+      selected_skills: selectedSkills,
+      skill_count: selectedSkills.length,
+      exported_at: new Date().toISOString(),
+    };
+
+    const blob = new Blob([JSON.stringify(profile, null, 2)], {
+      type: "application/json",
+    });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "pathloom_profile.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  /* ---------- Profile Import Utility ---------- */
+  const importProfile = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const profile = JSON.parse(e.target.result);
+
+        if (profile.target_role) {
+          setSelectedRole(profile.target_role);
+        }
+
+        if (profile.selected_skills) {
+          setSelectedSkills(profile.selected_skills);
+        }
+
+        alert("Profile imported successfully!");
+      } catch {
+        alert("Invalid profile file.");
+      }
+    };
+
+    reader.readAsText(file);
+  };
+
   const toggleSkill = (skillId) => {
     const id = String(skillId);
     setSelectedSkills((prev) =>
@@ -683,6 +731,98 @@ function App() {
       </header>
 
       <main className="max-w-7xl mx-auto p-6 lg:p-8 space-y-6">
+        {/* Personal Profile Component Card */}
+        <div className="pl-panel p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="pl-eyebrow">
+                Career Profile
+              </p>
+              <h2 className="pl-panel-title mt-1">
+                👤 Personal Profile
+              </h2>
+            </div>
+            <div className="pl-status pl-status--online">
+              <span className="pl-status-dot"></span>
+              <span>Saved</span>
+            </div>
+          </div>
+          <div className="grid md:grid-cols-4 gap-4 mt-5">
+            <div className="pl-stat pl-stat--card p-3">
+              <span className="pl-stat-label">
+                Target Role
+              </span>
+              <strong className="pl-stat-value">
+                {
+                  selectedRole
+                    ? getRoleName(selectedRole)
+                    : "Not Selected"
+                }
+              </strong>
+            </div>
+            <div className="pl-stat pl-stat--card p-3">
+              <span className="pl-stat-label">
+                Skills Selected
+              </span>
+              <strong className="pl-stat-value">
+                {selectedSkills.length}
+              </strong>
+            </div>
+            <div className="pl-stat pl-stat--card p-3">
+              <span className="pl-stat-label">
+                Profile Status
+              </span>
+              <strong className="pl-stat-value">
+                Saved
+              </strong>
+            </div>
+            <div className="pl-stat pl-stat--card p-3">
+              <span className="pl-stat-label">
+                Storage
+              </span>
+              <strong className="pl-stat-value">
+                Local Browser
+              </strong>
+            </div>
+          </div>
+          {/* Action Trigger Block for JSON Payload Delivery */}
+          <div className="mt-5">
+            <button
+              onClick={exportProfile}
+              className="
+                px-4
+                py-2
+                rounded-lg
+                bg-indigo-600
+                text-white
+                hover:bg-indigo-700
+              "
+            >
+              📄 Export Profile
+            </button>
+
+            <label
+              className="
+                ml-3
+                px-4
+                py-2
+                rounded-lg
+                bg-slate-700
+                text-white
+                cursor-pointer
+                hover:bg-slate-800
+              "
+            >
+              📂 Import Profile
+              <input
+                type="file"
+                accept=".json"
+                className="hidden"
+                onChange={importProfile}
+              />
+            </label>
+          </div>
+        </div>
 
         {loadError && (
           <div className="pl-alert pl-alert--rust p-4 flex items-start gap-3">
@@ -987,7 +1127,7 @@ function App() {
                             <CareerStats info={careerInfo[item.role_id]} variant="card" />
                           </div>
 
-                          {/* Why This Role metric lists */}
+                          {/* Why This Role? */}
                           {explanations[item.role_id] && (
                             <div className="mt-4 pt-4" style={{ borderTop: "1px solid var(--line)" }}>
                               <h4 className="font-semibold text-sm mb-2 pl-display">

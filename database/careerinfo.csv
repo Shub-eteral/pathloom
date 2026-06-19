@@ -1,0 +1,17 @@
+role_id,salary,demand,difficulty,learning_time
+
+1,6-10 LPA,High,Easy,3 Months
+2,12-18 LPA,High,Medium,6 Months
+3,15-25 LPA,Very High,Hard,9 Months
+4,18-30 LPA,Very High,Hard,12 Months
+5,12-22 LPA,High,Hard,8 Months
+6,6-12 LPA,Medium,Easy,3 Months
+7,8-16 LPA,High,Medium,4 Months
+8,10-18 LPA,High,Medium,5 Months
+9,12-20 LPA,Very High,Medium,7 Months
+10,10-18 LPA,High,Medium,6 Months
+11,14-24 LPA,Very High,Hard,8 Months
+12,15-28 LPA,Very High,Hard,9 Months
+13,20-35 LPA,Very High,Very Hard,12 Months
+14,8-16 LPA,High,Medium,5 Months
+15,12-22 LPA,Very High,Hard,8 Months

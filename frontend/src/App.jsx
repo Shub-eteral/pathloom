@@ -375,8 +375,28 @@ function CareerStats({ info, variant = "card" }) {
 function App() {
   const [roles, setRoles] = useState([]);
   const [skills, setSkills] = useState({});
+  const [isHydrated, setIsHydrated] = useState(false);
+  
   const [selectedRole, setSelectedRole] = useState("");
   const [selectedSkills, setSelectedSkills] = useState([]);
+
+  // Guarded Role Sync
+  useEffect(() => {
+    if (!isHydrated) return;
+    if (selectedRole) {
+      localStorage.setItem("pathloom_role", selectedRole);
+    } else {
+      localStorage.removeItem("pathloom_role");
+    }
+  }, [selectedRole, isHydrated]);
+
+  // Guarded Skills Sync with debug logging
+  useEffect(() => {
+    if (!isHydrated) return;
+    console.log("Selected Skills Syncing to Storage:", selectedSkills);
+    localStorage.setItem("pathloom_skills", JSON.stringify(selectedSkills));
+  }, [selectedSkills, isHydrated]);
+
   const [skillSearch, setSkillSearch] = useState("");
   const [result, setResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -398,6 +418,7 @@ function App() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  // Central Core Startup/Restoration Block
   useEffect(() => {
     let isMounted = true;
 
@@ -418,6 +439,21 @@ function App() {
         if (isMounted) {
           setRoles(rolesData);
           setSkills(skillsData);
+
+          // Extract values cleanly from storage first
+          const savedRole = localStorage.getItem("pathloom_role");
+          const savedSkills = localStorage.getItem("pathloom_skills");
+
+          // Run hydration adjustments before switching the hydration flag
+          if (savedRole) {
+            setSelectedRole(savedRole);
+          }
+          if (savedSkills) {
+            setSelectedSkills(JSON.parse(savedSkills));
+          }
+
+          // Hydration is complete! Enable state observer storage updates
+          setIsHydrated(true);
         }
       } catch (error) {
         console.error(error);

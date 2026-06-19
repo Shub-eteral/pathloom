@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import ComparisonChart from "./components/ComparisonChart";
 
 const API_BASE = "http://127.0.0.1:8000";
 
@@ -176,7 +177,7 @@ function GlobalStyles() {
       .pl-spinner { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; animation: pl-spin 0.7s linear infinite; }
       @keyframes pl-spin { to { transform: rotate(360deg); } }
 
-      /* ---------- thread gauge (signature element) ---------- */
+      /* ---------- thread gauge ---------- */
       .pl-gauge {
         position: relative;
         width: 100%;
@@ -265,6 +266,13 @@ function GlobalStyles() {
         transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
       }
       .pl-card:hover { border-color: rgba(35,44,82,0.35); box-shadow: 0 12px 28px -16px rgba(22,26,44,0.25); transform: translateY(-2px); }
+
+      /* ---------- comparison table formatting ---------- */
+      .pl-table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+      .pl-table th { background: var(--indigo-soft); color: var(--indigo); font-family: 'IBM Plex Mono'; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 1rem; border-bottom: 1px solid var(--line); text-align: left; }
+      .pl-table td { padding: 1rem; border-bottom: 1px solid var(--line); font-size: 0.85rem; font-weight: 500; color: var(--ink-soft); }
+      .pl-table tr:last-child td { border-bottom: none; }
+      .pl-table tr:hover td { background-color: rgba(238,240,247,0.4); }
 
       /* ---------- focus & motion ---------- */
       .pl-root :focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
@@ -376,6 +384,8 @@ function App() {
   const [analyzeError, setAnalyzeError] = useState(null);
   const [recommendError, setRecommendError] = useState(null);
   const [recommendations, setRecommendations] = useState([]);
+  const [comparisonData, setComparisonData] = useState([]);
+  const [bestCareer, setBestCareer] = useState(null);
 
   // Holds extended data attributes for recommendation entities
   const [careerInfo, setCareerInfo] = useState({});
@@ -492,6 +502,7 @@ function App() {
       const data = await response.json();
 
       setRecommendations(data);
+      compareTopRoles(data);
 
       data.forEach((item) => {
         loadCareerInfo(item.role_id);
@@ -549,6 +560,28 @@ function App() {
     }
   };
 
+  const compareTopRoles = async (recommendations) => {
+    try {
+      const roleIds = recommendations
+        .slice(0, 3)
+        .map((r) => r.role_id)
+        .join(",");
+
+      const response = await fetch(
+        `${API_BASE}/compare?role_ids=${roleIds}&skills_input=${selectedSkills.join(",")}`
+      );
+
+      const data = await response.json();
+      setComparisonData(data);
+
+      if (data.length > 0) {
+        setBestCareer(data[0]);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const clearSelection = () => {
     setSelectedRole("");
     setSelectedSkills([]);
@@ -557,6 +590,8 @@ function App() {
     setAnalyzeError(null);
     setRecommendError(null);
     setRecommendations([]);
+    setComparisonData([]);
+    setBestCareer(null);
     setCareerInfo({});
     setExplanations({});
     setInsights({});
@@ -841,7 +876,7 @@ function App() {
               )}
             </div>
 
-            {/* Recommendations mapping display array layouts */}
+            {/* Recommendations grid panel container */}
             <div className="pl-panel p-6">
               <div className="pl-panel-head pb-4 mb-5">
                 <h2 className="pl-panel-title">Alternative matches</h2>
@@ -955,7 +990,7 @@ function App() {
                           {
                             insights[item.role_id] && (
                               <div className="mt-4">
-                                <div className="bg-indigo-55 border border-indigo-200 rounded-xl p-4" style={{ backgroundColor: "var(--indigo-soft)" }}>
+                                <div className="border border-indigo-200 rounded-xl p-4" style={{ backgroundColor: "var(--indigo-soft)" }}>
                                   <h4 className="font-semibold text-indigo-700 mb-2" style={{ color: "var(--indigo)" }}>
                                     🤖 AI Insight
                                   </h4>
@@ -973,6 +1008,95 @@ function App() {
                 </div>
               )}
             </div>
+
+            {/* Career Comparison Section Frame Area */}
+            {comparisonData.length > 0 && (
+              <section className="pl-panel p-6 mt-10">
+                <div className="pl-panel-head pb-4 mb-5">
+                  <h2 className="pl-panel-title flex items-center gap-2">
+                    <span>⚖️</span> Career Comparison
+                  </h2>
+                  <p className="pl-panel-subtitle">Side-by-side metric cross-matching analysis for top tracked roles.</p>
+                </div>
+
+                {/* Champion Recommended Career Showcase Element */}
+                {bestCareer && (
+                  <div className="mb-8 rounded-2xl bg-gradient-to-r from-green-600 to-emerald-600 text-white p-6 shadow-lg">
+                    <div className="text-sm font-semibold uppercase tracking-wider pl-mono">
+                      🏆 Recommended Career
+                    </div>
+                    <h2 className="text-3xl font-bold mt-2 pl-display">
+                      {bestCareer.role_name}
+                    </h2>
+                    <p className="mt-2 text-lg font-medium">
+                      Match Score: {bestCareer.readiness_score}%
+                    </p>
+                    <div className="mt-4 text-sm space-y-1.5 pl-mono">
+                      <p>💰 Salary: <span className="font-semibold">{bestCareer.salary}</span></p>
+                      <p>📈 Demand: <span className="font-semibold">{bestCareer.demand}</span></p>
+                      <p>⚡ Difficulty: <span className="font-semibold">{bestCareer.difficulty}</span></p>
+                      <p>⏳ Learning Time: <span className="font-semibold">{bestCareer.learning_time}</span></p>
+                    </div>
+                    <div className="mt-4 bg-white/20 backdrop-blur-sm rounded-lg p-3 text-sm font-medium">
+                      Highest readiness score among compared careers and strongest alignment with your current skills.
+                    </div>
+                  </div>
+                )}
+
+                {/* Comparison Chart Component Section */}
+                {comparisonData.length > 0 && (
+                  <div className="mb-8 bg-white rounded-2xl shadow p-6 border border-slate-100">
+                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-slate-800">
+                      <span>📊</span> Readiness Comparison
+                    </h2>
+                    <ComparisonChart data={comparisonData} />
+                  </div>
+                )}
+
+                {/* Grid Comparison Table */}
+                <div className="overflow-x-auto">
+                  <table className="pl-table">
+                    <thead>
+                      <tr>
+                        <th>Career</th>
+                        <th>Readiness</th>
+                        <th>Salary</th>
+                        <th>Demand</th>
+                        <th>Difficulty</th>
+                        <th>Learning Time</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {comparisonData.map((career) => (
+                        <tr key={career.role_id}>
+                          <td className="font-semibold text-slate-800" style={{ color: "var(--ink)" }}>
+                            {career.role_name}
+                          </td>
+                          <td>
+                            <div className="flex items-center gap-2.5 min-w-[100px]">
+                              <span className="pl-mono font-semibold" style={{ color: "var(--teal)" }}>
+                                {career.readiness_score}%
+                              </span>
+                              <div className="flex-1">
+                                <ThreadGauge value={career.readiness_score} tone="teal" size="sm" />
+                              </div>
+                            </div>
+                          </td>
+                          <td className="pl-mono font-medium">{career.salary}</td>
+                          <td>
+                            <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                              {career.demand}
+                            </span>
+                          </td>
+                          <td>{career.difficulty}</td>
+                          <td className="text-xs">{career.learning_time}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            )}
 
           </div>
         </div>

@@ -379,6 +379,10 @@ function App() {
 
   // Holds extended data attributes for recommendation entities
   const [careerInfo, setCareerInfo] = useState({});
+  
+  // Alignment maps and predictions
+  const [explanations, setExplanations] = useState({});
+  const [insights, setInsights] = useState({});
 
   // Floating dropdown popover interactive hooks
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -491,6 +495,8 @@ function App() {
 
       data.forEach((item) => {
         loadCareerInfo(item.role_id);
+        loadExplanation(item.role_id);
+        loadInsight(item.role_id);
       });
     } catch (error) {
       console.error(error);
@@ -513,6 +519,36 @@ function App() {
     }
   };
 
+  const loadExplanation = async (roleId) => {
+    try {
+      const response = await fetch(
+        `${API_BASE}/explain?role_id=${roleId}&skills_input=${selectedSkills.join(",")}`
+      );
+      const data = await response.json();
+      setExplanations((prev) => ({
+        ...prev,
+        [roleId]: data,
+      }));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const loadInsight = async (roleId) => {
+    try {
+      const response = await fetch(
+        `${API_BASE}/insight?role_id=${roleId}&skills_input=${selectedSkills.join(",")}`
+      );
+      const data = await response.json();
+      setInsights((prev) => ({
+        ...prev,
+        [roleId]: data.insight
+      }));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const clearSelection = () => {
     setSelectedRole("");
     setSelectedSkills([]);
@@ -522,6 +558,8 @@ function App() {
     setRecommendError(null);
     setRecommendations([]);
     setCareerInfo({});
+    setExplanations({});
+    setInsights({});
   };
 
   const filteredSkills = Object.entries(skills).filter(([, skillName]) =>
@@ -772,13 +810,13 @@ function App() {
                     <h3 className="pl-field-label mb-3">Skills to develop</h3>
                     {result.missing_skills.length === 0 ? (
                       <div className="pl-alert pl-alert--teal p-4 flex items-center gap-3">
-                        <CheckIcon className="w-5 h-5 shrink-0" style={{ color: "var(--teal)" }} />
-                        <span>You meet every requirement for this role.</span>
+                        <CheckIcon className="w-5 h-5 shrink-0" />
+                        <span>You have all the required skills for this role!</span>
                       </div>
                     ) : (
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className="flex flex-wrap gap-2">
                         {result.missing_skills.map((skill, index) => (
-                          <span key={index} className="pl-tag pl-tag--rust px-3 py-1.5">
+                          <span key={index} className="pl-tag pl-tag--rust px-3 py-1">
                             {skill}
                           </span>
                         ))}
@@ -787,88 +825,147 @@ function App() {
                   </div>
 
                   <div className="pt-4" style={{ borderTop: "1px solid var(--line)" }}>
-                    <h3 className="pl-field-label mb-4">Suggested learning path</h3>
-                    <ol className="space-y-4">
+                    <h3 className="pl-field-label mb-4">Upskilling roadmap</h3>
+                    <div className="space-y-4">
                       {result.roadmap.map((step, index) => (
-                        <li key={index} className="pl-roadmap-item flex gap-3.5">
-                          <span className="pl-roadmap-index">{index + 1}</span>
-                          <p className="pl-roadmap-text p-3 flex-1">
+                        <div key={index} className="pl-roadmap-item flex gap-4">
+                          <div className="pl-roadmap-index">{index + 1}</div>
+                          <div className="pl-roadmap-text flex-1 p-3.5 font-medium">
                             {step.replace(/^Step \d+:\s*/, "")}
-                          </p>
-                        </li>
+                          </div>
+                        </div>
                       ))}
-                    </ol>
+                    </div>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Alternative roles */}
+            {/* Recommendations mapping display array layouts */}
             <div className="pl-panel p-6">
               <div className="pl-panel-head pb-4 mb-5">
-                <h2 className="pl-panel-title">Alternative roles</h2>
-                <p className="pl-panel-subtitle">Other roles your current skills are a strong fit for.</p>
+                <h2 className="pl-panel-title">Alternative matches</h2>
+                <p className="pl-panel-subtitle">Explore alternate professions with high core matching affinity ratios.</p>
               </div>
 
               {recommendations.length === 0 ? (
                 <EmptyState
-                  title="No roles yet"
-                  body="Add your skills, then find other roles you're a strong match for."
+                  title="No recommendations yet"
+                  body="Add your unique skills matrix on the configuration frame to generate predictive alternatives maps."
                 />
               ) : (
                 <div className="space-y-6">
-
                   {bestMatch && (
                     <div className="pl-hero p-6">
-                      <div className="flex items-center gap-2.5">
-                        <span className="pl-hero-badge px-3 py-1">Best match</span>
-                        <span className="text-xs font-semibold" style={{ color: "rgba(255,255,255,0.65)" }}>
-                          Highest score among your alternatives
-                        </span>
+                      <span className="pl-hero-badge px-2.5 py-0.5 inline-block font-bold">Best Match</span>
+                      <h3 className="pl-display pl-hero-role mt-2">{getRoleName(bestMatch.role_id)}</h3>
+                      
+                      <div className="mt-4 flex items-center justify-between mb-1.5">
+                        <span className="pl-field-label" style={{ color: "rgba(255,255,255,0.7)" }}>Match Score</span>
+                        <span className="pl-mono pl-hero-score text-base">{bestMatch.score}%</span>
+                      </div>
+                      <ThreadGauge value={bestMatch.score} tone="brass" size="md" light={true} />
+
+                      <div className="mt-5 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.15)" }}>
+                        <CareerStats info={careerInfo[bestMatch.role_id]} variant="hero" />
                       </div>
 
-                      <h3 className="pl-hero-role mt-3.5">{getRoleName(bestMatch.role_id)}</h3>
-
-                      <div className="mt-4 flex items-center gap-3">
-                        <div className="flex-1">
-                          <ThreadGauge value={bestMatch.score} tone="brass" size="md" light />
-                        </div>
-                        <span className="pl-mono text-xs font-semibold shrink-0" style={{ color: "var(--brass-soft)" }}>
-                          {bestMatch.score}% match
-                        </span>
-                      </div>
-
-                      {careerInfo[bestMatch.role_id] && (
-                        <div className="mt-5 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.12)" }}>
-                          <CareerStats info={careerInfo[bestMatch.role_id]} variant="hero" />
+                      {/* Alignment insight for best match container block */}
+                      {explanations[bestMatch.role_id] && (
+                        <div className="mt-4 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.15)" }}>
+                          <h4 className="font-semibold text-sm mb-2 pl-display">Why This Role?</h4>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="font-medium mb-1 text-xs" style={{ color: "var(--teal-soft)" }}>Matched</p>
+                              <ul className="text-sm space-y-0.5 opacity-90">
+                                {explanations[bestMatch.role_id].matched.map((skill, index) => (
+                                  <li key={index} className="truncate">✓ {skill}</li>
+                                ))}
+                              </ul>
+                            </div>
+                            <div>
+                              <p className="font-medium mb-1 text-xs" style={{ color: "var(--rust-soft)" }}>Missing</p>
+                              <ul className="text-sm space-y-0.5 opacity-90">
+                                {explanations[bestMatch.role_id].missing.map((skill, index) => (
+                                  <li key={index} className="truncate">✗ {skill}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
                   )}
 
                   {otherRecommendations.length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2" style={{ borderTop: bestMatch ? "1px solid var(--line)" : "none" }}>
-                      {otherRecommendations.map((item, index) => (
-                        <div key={index} className="pl-card p-4 flex flex-col justify-between">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {otherRecommendations.map((item) => (
+                        <div key={item.role_id} className="pl-card p-4 flex flex-col justify-between">
                           <div>
-                            <h4 className="pl-display font-semibold text-base" style={{ color: "var(--ink)" }}>
-                              {getRoleName(item.role_id)}
-                            </h4>
-                          </div>
-
-                          <div className="mt-4 pt-3.5" style={{ borderTop: "1px solid var(--line)" }}>
-                            <div className="flex items-center justify-between mb-1.5">
-                              <span className="pl-field-label">Match score</span>
-                              <span className="pl-mono text-xs font-semibold" style={{ color: "var(--indigo)" }}>{item.score}%</span>
+                            <span className="pl-eyebrow text-[10px]">Alternative track</span>
+                            <h4 className="font-bold text-slate-800 text-sm mt-0.5">{getRoleName(item.role_id)}</h4>
+                            
+                            <div className="mt-3 flex items-center justify-between mb-1">
+                              <span className="pl-field-label" style={{ fontSize: "0.58rem" }}>Match Score</span>
+                              <span className="pl-mono font-bold text-xs" style={{ color: "var(--indigo)" }}>{item.score}%</span>
                             </div>
                             <ThreadGauge value={item.score} tone="indigo" size="sm" />
                           </div>
 
-                          {careerInfo[item.role_id] && (
-                            <div className="mt-3.5">
-                              <CareerStats info={careerInfo[item.role_id]} variant="card" />
+                          <div className="mt-4">
+                            <CareerStats info={careerInfo[item.role_id]} variant="card" />
+                          </div>
+
+                          {/* Why This Role metric lists */}
+                          {explanations[item.role_id] && (
+                            <div className="mt-4 pt-4" style={{ borderTop: "1px solid var(--line)" }}>
+                              <h4 className="font-semibold text-sm mb-2 pl-display">
+                                Why This Role?
+                              </h4>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <p className="font-medium mb-1 text-xs" style={{ color: "var(--teal)" }}>
+                                    Matched
+                                  </p>
+                                  <ul className="text-sm space-y-0.5" style={{ color: "var(--ink-soft)" }}>
+                                    {explanations[item.role_id].matched.map((skill, index) => (
+                                      <li key={index} className="truncate">
+                                        ✓ {skill}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                                <div>
+                                  <p className="font-medium mb-1 text-xs" style={{ color: "var(--rust)" }}>
+                                    Missing
+                                  </p>
+                                  <ul className="text-sm space-y-0.5" style={{ color: "var(--ink-soft)" }}>
+                                    {explanations[item.role_id].missing.map((skill, index) => (
+                                      <li key={index} className="truncate">
+                                        ✗ {skill}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </div>
                             </div>
                           )}
+
+                          {/* AI Insight section container block */}
+                          {
+                            insights[item.role_id] && (
+                              <div className="mt-4">
+                                <div className="bg-indigo-55 border border-indigo-200 rounded-xl p-4" style={{ backgroundColor: "var(--indigo-soft)" }}>
+                                  <h4 className="font-semibold text-indigo-700 mb-2" style={{ color: "var(--indigo)" }}>
+                                    🤖 AI Insight
+                                  </h4>
+                                  <p className="text-sm text-slate-700" style={{ color: "var(--ink-soft)" }}>
+                                    {insights[item.role_id]}
+                                  </p>
+                                </div>
+                              </div>
+                            )
+                          }
                         </div>
                       ))}
                     </div>

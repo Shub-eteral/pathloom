@@ -1,8 +1,8 @@
 from pathlib import Path
-
+from explainer import explain_role
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-
+from insights import generate_insight
 from role_loader import load_roles
 from data_loader import load_role_skills
 from skill_loader import load_skills
@@ -111,10 +111,65 @@ def recommend(skills_input: str):
     return recommendations
 
 
+@app.get("/explain")
+def explain(
+    role_id: str,
+    skills_input: str
+):
+
+    user_skills = [
+        skill.strip()
+        for skill in skills_input.split(",")
+    ]
+
+    return explain_role(
+        user_skills,
+        role_skills[role_id],
+        skills
+    )
+
+
 # Task 3 Specific Dynamic Endpoint
 @app.get("/career-info/{role_id}")
 def get_career_info(role_id: str):
-    return career_info.get(
-        role_id,
-        {}
+    # FIX 3: Raise 404 cleanly if the career data doesn't exist
+    if role_id not in career_info:
+        raise HTTPException(status_code=404, detail=f"Career info not found for role: {role_id}")
+        
+    return career_info.get(role_id)
+
+@app.get("/insight")
+def insight(
+    role_id: str,
+    skills_input: str
+):
+
+    user_skills = [
+        skill.strip()
+        for skill in skills_input.split(",")
+    ]
+
+    explanation = explain_role(
+        user_skills,
+        role_skills[role_id],
+        skills
     )
+
+    role_name = next(
+        (
+            role["role_name"]
+            for role in roles
+            if role["role_id"] == role_id
+        ),
+        "Career"
+    )
+
+    insight_text = generate_insight(
+        role_name,
+        explanation["matched"],
+        explanation["missing"]
+    )
+
+    return {
+        "insight": insight_text
+    }

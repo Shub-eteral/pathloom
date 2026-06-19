@@ -3,6 +3,7 @@ import ComparisonChart from "./components/ComparisonChart";
 
 // Task 4.2: Import dynamic dataset for global study countries
 import countries from "./data/countries";
+import universities from "./data/universities";
 
 const API_BASE = "http://127.0.0.1:8000";
 
@@ -387,8 +388,14 @@ function App() {
   // Persistent states for study mode pathways
   const [studyCountry, setStudyCountry] = useState("");
   const [studyDegree, setStudyDegree] = useState("");
+  const [targetCareer, setTargetCareer] = useState("");
+  
+  // Day 15 Part 1: Academic Profile States
+  const [degreeLevel, setDegreeLevel] = useState("");
+  const [gpaScale, setGpaScale] = useState("10");
+  const [gpaScore, setGpaScore] = useState("");
 
-  // Guarded Role Sync
+  // Guarded Role & Skill Sync
   useEffect(() => {
     if (!isHydrated) return;
     if (selectedRole) {
@@ -398,24 +405,23 @@ function App() {
     }
   }, [selectedRole, isHydrated]);
 
-  // Guarded Skills Sync
   useEffect(() => {
     if (!isHydrated) return;
-    console.log("Selected Skills Syncing to Storage:", selectedSkills);
     localStorage.setItem("pathloom_skills", JSON.stringify(selectedSkills));
   }, [selectedSkills, isHydrated]);
 
-  // Sync dynamic country pathways across reboots
+  // Sync study parameters and profile tracks across reboots
   useEffect(() => {
     if (!isHydrated) return;
     localStorage.setItem("pathloom_country", studyCountry);
-  }, [studyCountry, isHydrated]);
-
-  // Sync dynamic degree targets across reboots
-  useEffect(() => {
-    if (!isHydrated) return;
     localStorage.setItem("pathloom_degree", studyDegree);
-  }, [studyDegree, isHydrated]);
+    
+    // Day 15 Part 3: Save Academic Profile configurations
+    localStorage.setItem("pathloom_degree_level", degreeLevel);
+    localStorage.setItem("pathloom_gpa_scale", gpaScale);
+    localStorage.setItem("pathloom_gpa_score", gpaScore);
+    localStorage.setItem("pathloom_target_career", targetCareer);
+  }, [studyCountry, studyDegree, degreeLevel, gpaScale, gpaScore, targetCareer, isHydrated]);
 
   const [skillSearch, setSkillSearch] = useState("");
   const [result, setResult] = useState(null);
@@ -427,14 +433,10 @@ function App() {
   const [comparisonData, setComparisonData] = useState([]);
   const [bestCareer, setBestCareer] = useState(null);
 
-  // Holds extended data attributes for recommendation entities
   const [careerInfo, setCareerInfo] = useState({});
-  
-  // Alignment maps and predictions
   const [explanations, setExplanations] = useState({});
   const [insights, setInsights] = useState({});
 
-  // Floating dropdown popover interactive hooks
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -460,30 +462,24 @@ function App() {
           setRoles(rolesData);
           setSkills(skillsData);
 
-          // Extract values cleanly from storage first
-          const savedRole = localStorage.getItem("pathloom_role");
+          // Restore Academic Targets and Profile Tracks
+          setStudyCountry(localStorage.getItem("pathloom_country") || "");
+          setStudyDegree(localStorage.getItem("pathloom_degree") || "");
+          setDegreeLevel(localStorage.getItem("pathloom_degree_level") || "");
+          setGpaScale(localStorage.getItem("pathloom_gpa_scale") || "10");
+          setGpaScore(localStorage.getItem("pathloom_gpa_score") || "");
+
+          const savedCareer = localStorage.getItem("pathloom_target_career");
+          if (savedCareer) {
+            setTargetCareer(savedCareer);
+          }
+
+          setSelectedRole(localStorage.getItem("pathloom_role") || "");
           const savedSkills = localStorage.getItem("pathloom_skills");
-
-          // Restore academic targets within structural hydration hooks
-          const savedCountry = localStorage.getItem("pathloom_country");
-          if (savedCountry) {
-            setStudyCountry(savedCountry);
-          }
-
-          const savedDegree = localStorage.getItem("pathloom_degree");
-          if (savedDegree) {
-            setStudyDegree(savedDegree);
-          }
-
-          // Run hydration adjustments before switching the hydration flag
-          if (savedRole) {
-            setSelectedRole(savedRole);
-          }
           if (savedSkills) {
             setSelectedSkills(JSON.parse(savedSkills));
           }
 
-          // Hydration is complete! Enable state observer storage updates
           setIsHydrated(true);
         }
       } catch (error) {
@@ -524,6 +520,10 @@ function App() {
       skill_count: selectedSkills.length,
       study_country: studyCountry,
       study_degree: studyDegree,
+      degree_level: degreeLevel,
+      gpa_scale: gpaScale,
+      gpa_score: gpaScore,
+      target_career: targetCareer,
       exported_at: new Date().toISOString(),
     };
 
@@ -549,18 +549,14 @@ function App() {
       try {
         const profile = JSON.parse(e.target.result);
 
-        if (profile.target_role) {
-          setSelectedRole(profile.target_role);
-        }
-        if (profile.selected_skills) {
-          setSelectedSkills(profile.selected_skills);
-        }
-        if (profile.study_country) {
-          setStudyCountry(profile.study_country);
-        }
-        if (profile.study_degree) {
-          setStudyDegree(profile.study_degree);
-        }
+        if (profile.target_role) setSelectedRole(profile.target_role);
+        if (profile.selected_skills) setSelectedSkills(profile.selected_skills);
+        if (profile.study_country) setStudyCountry(profile.study_country);
+        if (profile.study_degree) setStudyDegree(profile.study_degree);
+        if (profile.degree_level) setDegreeLevel(profile.degree_level);
+        if (profile.gpa_scale) setGpaScale(profile.gpa_scale);
+        if (profile.gpa_score) setGpaScore(profile.gpa_score);
+        if (profile.target_career) setTargetCareer(profile.target_career);
 
         alert("Profile imported successfully!");
       } catch {
@@ -710,6 +706,10 @@ function App() {
     setSkillSearch("");
     setStudyCountry("");
     setStudyDegree("");
+    setTargetCareer("");
+    setDegreeLevel("");
+    setGpaScale("10");
+    setGpaScore("");
     setResult(null);
     setAnalyzeError(null);
     setRecommendError(null);
@@ -743,7 +743,18 @@ function App() {
     ? "online"
     : "connecting";
 
-  const connectionLabel =
+  
+  const getRecommendedProgram = (university) => {
+    const match = university.programs.find(
+      (program) => program.career === targetCareer
+    );
+
+    return match
+      ? match.course
+      : "No matching program";
+  };
+
+const connectionLabel =
     connectionStatus === "offline" ? "Server offline" :
     connectionStatus === "connecting" ? "Connecting…" : "Connected";
 
@@ -774,16 +785,12 @@ function App() {
         
         {/* Journey Mode Selector Card */}
         <div className="pl-panel p-6">
-          <h2 className="text-2xl font-bold mb-4">
-            Choose Your Journey
-          </h2>
+          <h2 className="text-2xl font-bold mb-4">Choose Your Journey</h2>
           <div className="flex gap-4">
             <button
               onClick={() => setMode("career")}
               className={`px-6 py-3 rounded-lg font-bold ${
-                mode === "career"
-                  ? "bg-indigo-600 text-white"
-                  : "bg-slate-200 text-slate-800"
+                mode === "career" ? "bg-indigo-600 text-white" : "bg-slate-200 text-slate-800"
               }`}
             >
               💼 Career
@@ -791,9 +798,7 @@ function App() {
             <button
               onClick={() => setMode("study")}
               className={`px-6 py-3 rounded-lg font-bold ${
-                mode === "study"
-                  ? "bg-indigo-600 text-white"
-                  : "bg-slate-200 text-slate-800"
+                mode === "study" ? "bg-indigo-600 text-white" : "bg-slate-200 text-slate-800"
               }`}
             >
               🎓 Study
@@ -801,16 +806,12 @@ function App() {
           </div>
         </div>
 
-        {/* Upgraded Personal Profile Card with multi-mode validation tracks */}
+        {/* Global Dashboard Profile Card Overview Component */}
         <div className="pl-panel p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="pl-eyebrow">
-                User Profile
-              </p>
-              <h2 className="pl-panel-title mt-1">
-                👤 Personal Profile
-              </h2>
+              <p className="pl-eyebrow">User Profile</p>
+              <h2 className="pl-panel-title mt-1">👤 Personal Profile</h2>
             </div>
             <div className="pl-status pl-status--online">
               <span className="pl-status-dot"></span>
@@ -819,80 +820,36 @@ function App() {
           </div>
           <div className="grid md:grid-cols-4 sm:grid-cols-2 gap-4 mt-5">
             <div className="pl-stat pl-stat--card p-3">
-              <span className="pl-stat-label">
-                Target Role
-              </span>
+              <span className="pl-stat-label">Target Role</span>
               <strong className="pl-stat-value">
-                {
-                  selectedRole
-                    ? getRoleName(selectedRole)
-                    : "Not Selected"
-                }
+                {selectedRole ? getRoleName(selectedRole) : "Not Selected"}
               </strong>
             </div>
             <div className="pl-stat pl-stat--card p-3">
-              <span className="pl-stat-label">
-                Skills Selected
-              </span>
-              <strong className="pl-stat-value">
-                {selectedSkills.length}
-              </strong>
-            </div>
-            
-            {/* Extended Study Profile Analytics Display Fields */}
-            <div className="pl-stat pl-stat--card p-3">
-              <span className="pl-stat-label">
-                Study Country
-              </span>
-              <strong className="pl-stat-value">
-                {studyCountry || "Not Set"}
-              </strong>
+              <span className="pl-stat-label">Skills Selected</span>
+              <strong className="pl-stat-value">{selectedSkills.length}</strong>
             </div>
             <div className="pl-stat pl-stat--card p-3">
-              <span className="pl-stat-label">
-                Degree Goal
-              </span>
-              <strong className="pl-stat-value">
-                {studyDegree || "Not Set"}
-              </strong>
+              <span className="pl-stat-label">Study Country</span>
+              <strong className="pl-stat-value">{studyCountry || "Not Set"}</strong>
+            </div>
+            <div className="pl-stat pl-stat--card p-3">
+              <span className="pl-stat-label">Degree Goal</span>
+              <strong className="pl-stat-value">{studyDegree || "Not Set"}</strong>
             </div>
           </div>
 
-          {/* Action Trigger Block for JSON Payload Delivery */}
           <div className="mt-5">
             <button
               onClick={exportProfile}
-              className="
-                px-4
-                py-2
-                rounded-lg
-                bg-indigo-600
-                text-white
-                hover:bg-indigo-700
-              "
+              className="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
             >
               📄 Export Profile
             </button>
 
-            <label
-              className="
-                ml-3
-                px-4
-                py-2
-                rounded-lg
-                bg-slate-700
-                text-white
-                cursor-pointer
-                hover:bg-slate-800
-              "
-            >
+            <label className="ml-3 px-4 py-2 rounded-lg bg-slate-700 text-white cursor-pointer hover:bg-slate-800">
               📂 Import Profile
-              <input
-                type="file"
-                accept=".json"
-                className="hidden"
-                onChange={importProfile}
-              />
+              <input type="file" accept=".json" className="hidden" onChange={importProfile} />
             </label>
           </div>
         </div>
@@ -911,15 +868,13 @@ function App() {
         {mode === "career" && (
           <>
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-
-              {/* LEFT — setup */}
+              {/* LEFT — configuration panels */}
               <section className="lg:col-span-5 pl-panel p-6 relative">
                 <div className="pl-panel-head pb-5 mb-5">
                   <h2 className="pl-panel-title">Build your profile</h2>
                   <p className="pl-panel-subtitle">Set a target role, then add the skills you bring.</p>
                 </div>
 
-                {/* Target role */}
                 <div className="space-y-2">
                   <label htmlFor="role-select" className="pl-field-label">Target role</label>
                   <div className="relative">
@@ -940,10 +895,8 @@ function App() {
                   </div>
                 </div>
 
-                {/* Skills */}
                 <div className="mt-6 relative" ref={dropdownRef}>
                   <label htmlFor="skill-search" className="pl-field-label mb-2">Your skills</label>
-
                   <div className="relative">
                     <SearchIcon className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "var(--ink-faint)" }} />
                     <input
@@ -966,11 +919,7 @@ function App() {
                   </div>
 
                   {isDropdownOpen && (
-                    <div
-                      id="skill-listbox"
-                      role="listbox"
-                      className="pl-dropdown absolute left-0 right-0 mt-2 max-h-64 overflow-y-auto z-50 p-2"
-                    >
+                    <div id="skill-listbox" role="listbox" className="pl-dropdown absolute left-0 right-0 mt-2 max-h-64 overflow-y-auto z-50 p-2">
                       {filteredSkills.length === 0 ? (
                         <div className="text-center py-4 text-xs font-medium" style={{ color: "var(--ink-faint)" }}>
                           No skills match that search.
@@ -987,12 +936,7 @@ function App() {
                               className={`pl-option flex items-center justify-between px-3 py-2.5 ${isChecked ? "pl-option--selected" : ""}`}
                             >
                               <div className="flex items-center gap-3">
-                                <input
-                                  type="checkbox"
-                                  className="pl-checkbox rounded h-4 w-4 pointer-events-none"
-                                  checked={isChecked}
-                                  readOnly
-                                />
+                                <input type="checkbox" className="pl-checkbox rounded h-4 w-4 pointer-events-none" checked={isChecked} readOnly />
                                 <span>{skillName}</span>
                               </div>
                               {isChecked && <CheckIcon className="pl-option-check w-4 h-4" />}
@@ -1010,11 +954,7 @@ function App() {
                     {selectedSkills.map((skillId) => (
                       <span key={skillId} className="pl-chip py-1" style={{ paddingLeft: "0.75rem", paddingRight: "0.4rem" }}>
                         {skills[skillId] ?? skillId}
-                        <button
-                          onClick={() => toggleSkill(skillId)}
-                          aria-label={`Remove ${skills[skillId] ?? skillId}`}
-                          className="pl-chip-remove p-0.5"
-                        >
+                        <button onClick={() => toggleSkill(skillId)} aria-label={`Remove ${skills[skillId] ?? skillId}`} className="pl-chip-remove p-0.5">
                           <CloseIcon className="w-3.5 h-3.5" />
                         </button>
                       </span>
@@ -1022,17 +962,11 @@ function App() {
                   </div>
                 </div>
 
-                {analyzeError && (
-                  <div className="pl-alert pl-alert--rust mt-4 p-3.5">{analyzeError}</div>
-                )}
+                {analyzeError && <div className="pl-alert pl-alert--rust mt-4 p-3.5">{analyzeError}</div>}
 
                 <div className="flex flex-col gap-2 mt-8 pt-5" style={{ borderTop: "1px solid var(--line)" }}>
                   <div className="flex gap-2">
-                    <button
-                      onClick={analyzeCareer}
-                      disabled={isLoading}
-                      className="pl-btn pl-btn--primary flex-1 px-5 py-3.5"
-                    >
+                    <button onClick={analyzeCareer} disabled={isLoading} className="pl-btn pl-btn--primary flex-1 px-5 py-3.5">
                       {isLoading ? (
                         <>
                           <div className="pl-spinner" />
@@ -1042,34 +976,21 @@ function App() {
                         <span>Analyze fit</span>
                       )}
                     </button>
-
-                    <button
-                      onClick={clearSelection}
-                      disabled={isLoading}
-                      className="pl-btn pl-btn--ghost px-4 py-3.5"
-                    >
+                    <button onClick={clearSelection} disabled={isLoading} className="pl-btn pl-btn--ghost px-4 py-3.5">
                       Clear
                     </button>
                   </div>
 
-                  <button
-                    onClick={getRecommendations}
-                    disabled={isLoading}
-                    className="pl-btn pl-btn--outline w-full px-5 py-3.5"
-                  >
+                  <button onClick={getRecommendations} disabled={isLoading} className="pl-btn pl-btn--outline w-full px-5 py-3.5">
                     Find alternative roles
                   </button>
 
-                  {recommendError && (
-                    <div className="pl-alert pl-alert--rust mt-1 p-3.5">{recommendError}</div>
-                  )}
+                  {recommendError && <div className="pl-alert pl-alert--rust mt-1 p-3.5">{recommendError}</div>}
                 </div>
               </section>
 
-              {/* RIGHT — results */}
+              {/* RIGHT — analytic metric displays */}
               <div className="lg:col-span-7 space-y-6">
-
-                {/* Fit analysis */}
                 <div className="pl-panel p-6">
                   <div className="pl-panel-head pb-4 mb-5">
                     <h2 className="pl-panel-title">Fit analysis</h2>
@@ -1077,18 +998,13 @@ function App() {
                   </div>
 
                   {!result ? (
-                    <EmptyState
-                      title="No analysis yet"
-                      body="Choose a target role and add your skills, then run the analysis."
-                    />
+                    <EmptyState title="No analysis yet" body="Choose a target role and add your skills, then run the analysis." />
                   ) : (
                     <div className="space-y-6">
                       <div className="p-4 rounded-xl" style={{ background: "var(--canvas)", border: "1px solid var(--line)" }}>
                         <div className="flex items-center justify-between mb-2.5">
                           <span className="pl-field-label">Readiness score</span>
-                          <span className="pl-mono pl-hero-score text-base" style={{ color: "var(--teal)" }}>
-                            {result.readiness_score}%
-                          </span>
+                          <span className="pl-mono pl-hero-score text-base" style={{ color: "var(--teal)" }}>{result.readiness_score}%</span>
                         </div>
                         <ThreadGauge value={result.readiness_score} tone="teal" size="lg" />
                       </div>
@@ -1103,9 +1019,7 @@ function App() {
                         ) : (
                           <div className="flex flex-wrap gap-2">
                             {result.missing_skills.map((skill, index) => (
-                              <span key={index} className="pl-tag pl-tag--rust px-3 py-1">
-                                {skill}
-                              </span>
+                              <span key={index} className="pl-tag pl-tag--rust px-3 py-1">{skill}</span>
                             ))}
                           </div>
                         )}
@@ -1128,7 +1042,6 @@ function App() {
                   )}
                 </div>
 
-                {/* Recommendations grid panel container */}
                 <div className="pl-panel p-6">
                   <div className="pl-panel-head pb-4 mb-5">
                     <h2 className="pl-panel-title">Alternative matches</h2>
@@ -1136,17 +1049,13 @@ function App() {
                   </div>
 
                   {recommendations.length === 0 ? (
-                    <EmptyState
-                      title="No recommendations yet"
-                      body="Add your unique skills matrix on the configuration frame to generate predictive alternatives maps."
-                    />
+                    <EmptyState title="No recommendations yet" body="Add your unique skills matrix on the configuration frame to generate predictive alternatives maps." />
                   ) : (
                     <div className="space-y-6">
                       {bestMatch && (
                         <div className="pl-hero p-6">
                           <span className="pl-hero-badge px-2.5 py-0.5 inline-block font-bold">Best Match</span>
                           <h3 className="pl-display pl-hero-role mt-2">{getRoleName(bestMatch.role_id)}</h3>
-                          
                           <div className="mt-4 flex items-center justify-between mb-1.5">
                             <span className="pl-field-label" style={{ color: "rgba(255,255,255,0.7)" }}>Match Score</span>
                             <span className="pl-mono pl-hero-score text-base">{bestMatch.score}%</span>
@@ -1157,7 +1066,6 @@ function App() {
                             <CareerStats info={careerInfo[bestMatch.role_id]} variant="hero" />
                           </div>
 
-                          {/* Alignment insight for best match container block */}
                           {explanations[bestMatch.role_id] && (
                             <div className="mt-4 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.15)" }}>
                               <h4 className="font-semibold text-sm mb-2 pl-display">Why This Role?</h4>
@@ -1191,7 +1099,6 @@ function App() {
                               <div>
                                 <span className="pl-eyebrow text-[10px]">Alternative track</span>
                                 <h4 className="font-bold text-slate-800 text-sm mt-0.5">{getRoleName(item.role_id)}</h4>
-                                
                                 <div className="mt-3 flex items-center justify-between mb-1">
                                   <span className="pl-field-label" style={{ fontSize: "0.58rem" }}>Match Score</span>
                                   <span className="pl-mono font-bold text-xs" style={{ color: "var(--indigo)" }}>{item.score}%</span>
@@ -1203,34 +1110,23 @@ function App() {
                                 <CareerStats info={careerInfo[item.role_id]} variant="card" />
                               </div>
 
-                              {/* Why This Role? */}
                               {explanations[item.role_id] && (
                                 <div className="mt-4 pt-4" style={{ borderTop: "1px solid var(--line)" }}>
-                                  <h4 className="font-semibold text-sm mb-2 pl-display">
-                                    Why This Role?
-                                  </h4>
+                                  <h4 className="font-semibold text-sm mb-2 pl-display">Why This Role?</h4>
                                   <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                      <p className="font-medium mb-1 text-xs" style={{ color: "var(--teal)" }}>
-                                        Matched
-                                      </p>
+                                      <p className="font-medium mb-1 text-xs" style={{ color: "var(--teal)" }}>Matched</p>
                                       <ul className="text-sm space-y-0.5" style={{ color: "var(--ink-soft)" }}>
                                         {explanations[item.role_id].matched.map((skill, index) => (
-                                          <li key={index} className="truncate">
-                                            ✓ {skill}
-                                          </li>
+                                          <li key={index} className="truncate">✓ {skill}</li>
                                         ))}
                                       </ul>
                                     </div>
                                     <div>
-                                      <p className="font-medium mb-1 text-xs" style={{ color: "var(--rust)" }}>
-                                        Missing
-                                      </p>
+                                      <p className="font-medium mb-1 text-xs" style={{ color: "var(--rust)" }}>Missing</p>
                                       <ul className="text-sm space-y-0.5" style={{ color: "var(--ink-soft)" }}>
                                         {explanations[item.role_id].missing.map((skill, index) => (
-                                          <li key={index} className="truncate">
-                                            ✗ {skill}
-                                          </li>
+                                          <li key={index} className="truncate">✗ {skill}</li>
                                         ))}
                                       </ul>
                                     </div>
@@ -1238,21 +1134,14 @@ function App() {
                                 </div>
                               )}
 
-                              {/* AI Insight section container block */}
-                              {
-                                insights[item.role_id] && (
-                                  <div className="mt-4">
-                                    <div className="border border-indigo-200 rounded-xl p-4" style={{ backgroundColor: "var(--indigo-soft)" }}>
-                                      <h4 className="font-semibold text-indigo-700 mb-2" style={{ color: "var(--indigo)" }}>
-                                        🤖 AI Insight
-                                      </h4>
-                                      <p className="text-sm text-slate-700" style={{ color: "var(--ink-soft)" }}>
-                                        {insights[item.role_id]}
-                                      </p>
-                                    </div>
+                              {insights[item.role_id] && (
+                                <div className="mt-4">
+                                  <div className="border border-indigo-200 rounded-xl p-4" style={{ backgroundColor: "var(--indigo-soft)" }}>
+                                    <h4 className="font-semibold text-indigo-700 mb-2" style={{ color: "var(--indigo)" }}>🤖 AI Insight</h4>
+                                    <p className="text-sm text-slate-700" style={{ color: "var(--ink-soft)" }}>{insights[item.role_id]}</p>
                                   </div>
-                                )
-                              }
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -1261,28 +1150,18 @@ function App() {
                   )}
                 </div>
 
-                {/* Career Comparison Section Frame Area */}
                 {comparisonData.length > 0 && (
                   <section className="pl-panel p-6 mt-10">
                     <div className="pl-panel-head pb-4 mb-5">
-                      <h2 className="pl-panel-title flex items-center gap-2">
-                        <span>⚖️</span> Career Comparison
-                      </h2>
+                      <h2 className="pl-panel-title flex items-center gap-2">⚖️ Career Comparison</h2>
                       <p className="pl-panel-subtitle">Side-by-side metric cross-matching analysis for top tracked roles.</p>
                     </div>
 
-                    {/* Champion Recommended Career Showcase Element */}
                     {bestCareer && (
                       <div className="mb-8 rounded-2xl bg-gradient-to-r from-green-600 to-emerald-600 text-white p-6 shadow-lg">
-                        <div className="text-sm font-semibold uppercase tracking-wider pl-mono">
-                          🏆 Recommended Career
-                        </div>
-                        <h2 className="text-3xl font-bold mt-2 pl-display">
-                          {bestCareer.role_name}
-                        </h2>
-                        <p className="mt-2 text-lg font-medium">
-                          Match Score: {bestCareer.readiness_score}%
-                        </p>
+                        <div className="text-sm font-semibold uppercase tracking-wider pl-mono">🏆 Recommended Career</div>
+                        <h2 className="text-3xl font-bold mt-2 pl-display">{bestCareer.role_name}</h2>
+                        <p className="mt-2 text-lg font-medium">Match Score: {bestCareer.readiness_score}%</p>
                         <div className="mt-4 text-sm space-y-1.5 pl-mono">
                           <p>💰 Salary: <span className="font-semibold">{bestCareer.salary}</span></p>
                           <p>📈 Demand: <span className="font-semibold">{bestCareer.demand}</span></p>
@@ -1295,17 +1174,11 @@ function App() {
                       </div>
                     )}
 
-                    {/* Comparison Chart Component Section */}
-                    {comparisonData.length > 0 && (
-                      <div className="mb-8 bg-white rounded-2xl shadow p-6 border border-slate-100">
-                        <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-slate-800">
-                          <span>📊</span> Readiness Comparison
-                        </h2>
-                        <ComparisonChart data={comparisonData} />
-                      </div>
-                    )}
+                    <div className="mb-8 bg-white rounded-2xl shadow p-6 border border-slate-100">
+                      <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-slate-800">📊 Readiness Comparison</h2>
+                      <ComparisonChart data={comparisonData} />
+                    </div>
 
-                    {/* Grid Comparison Table */}
                     <div className="overflow-x-auto">
                       <table className="pl-table">
                         <thead>
@@ -1321,14 +1194,10 @@ function App() {
                         <tbody>
                           {comparisonData.map((career) => (
                             <tr key={career.role_id}>
-                              <td className="font-semibold text-slate-800" style={{ color: "var(--ink)" }}>
-                                {career.role_name}
-                              </td>
+                              <td className="font-semibold text-slate-800" style={{ color: "var(--ink)" }}>{career.role_name}</td>
                               <td>
                                 <div className="flex items-center gap-2.5 min-w-[100px]">
-                                  <span className="pl-mono font-semibold" style={{ color: "var(--teal)" }}>
-                                    {career.readiness_score}%
-                                  </span>
+                                  <span className="pl-mono font-semibold" style={{ color: "var(--teal)" }}>{career.readiness_score}%</span>
                                   <div className="flex-1">
                                     <ThreadGauge value={career.readiness_score} tone="teal" size="sm" />
                                   </div>
@@ -1349,7 +1218,6 @@ function App() {
                     </div>
                   </section>
                 )}
-
               </div>
             </div>
           </>
@@ -1358,42 +1226,100 @@ function App() {
         {/* Study Mode Planner Dashboard Shell */}
         {mode === "study" && (
           <div className="pl-panel p-6">
-            <h2 className="text-3xl font-bold mb-4">
-              🎓 Study Planner
-            </h2>
-            <p className="text-slate-600 mb-6">
-              Plan your global education journey.
-            </p>
+            <h2 className="text-3xl font-bold mb-4">🎓 Study Planner</h2>
+            <p className="text-slate-600 mb-6">Plan your global education journey based on your unique profile metrics.</p>
 
-            <div className="grid md:grid-cols-2 gap-4">
+            {/* Day 15 Part 2: Academic Profile Form Element */}
+            <div className="pl-panel p-6 mt-6">
+              <h2 className="text-2xl font-bold mb-6">🎓 Academic Profile</h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                {/* Degree Selection Component */}
+                <div>
+                  <label className="block mb-2 font-medium">Degree Level</label>
+                  <select
+                    value={degreeLevel}
+                    onChange={(e) => setDegreeLevel(e.target.value)}
+                    className="w-full p-3 border rounded-lg"
+                  >
+                    <option value="">Select Degree</option>
+                    <option>Bachelor's</option>
+                    <option>Master's</option>
+                    <option>PhD</option>
+                  </select>
+                </div>
+
+                {/* GPA Scale Control Selection Component */}
+                <div>
+                  <label className="block mb-2 font-medium">GPA Scale</label>
+                  <select
+                    value={gpaScale}
+                    onChange={(e) => setGpaScale(e.target.value)}
+                    className="w-full p-3 border rounded-lg"
+                  >
+                    <option value="4">4.0 Scale</option>
+                    <option value="10">10.0 Scale</option>
+                  </select>
+                </div>
+
+                {/* GPA Continuous Input Numeric Selector field */}
+                <div>
+                  <label className="block mb-2 font-medium">GPA</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={gpaScore}
+                    onChange={(e) => setGpaScore(e.target.value)}
+                    placeholder="Enter GPA"
+                    className="w-full p-3 border rounded-lg"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Global Geographic and Academic Pathway Destination Track Selectors */}
+
+            <div className="mb-6">
+              <label className="block mb-2 font-medium">
+                Target Career
+              </label>
+
+              <select
+                value={targetCareer}
+                onChange={(e) => setTargetCareer(e.target.value)}
+                className="w-full p-3 border rounded-lg"
+              >
+                <option value="">Select Career</option>
+
+                {roles.map((role) => (
+                  <option
+                    key={role.role_id}
+                    value={role.role_name}
+                  >
+                    {role.role_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4 mt-6">
               <div>
-                <label className="block mb-2 font-medium">
-                  Target Country
-                </label>
-                {/* Connected dynamic study country selector options mapping */}
+                <label className="block mb-2 font-medium">Target Country</label>
                 <select 
                   className="w-full p-3 border rounded-lg"
                   value={studyCountry}
                   onChange={(e) => setStudyCountry(e.target.value)}
                 >
                   <option value="">Select Country</option>
-                  {
-                    countries.map((country) => (
-                      <option
-                        key={country.id}
-                        value={country.name}
-                      >
-                        {country.name}
-                      </option>
-                    ))
-                  }
+                  {countries.map((country) => (
+                    <option key={country.id} value={country.name}>
+                      {country.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               <div>
-                <label className="block mb-2 font-medium">
-                  Degree Level
-                </label>
+                <label className="block mb-2 font-medium">Degree Level Goal</label>
                 <select 
                   className="w-full p-3 border rounded-lg"
                   value={studyDegree}
@@ -1407,59 +1333,57 @@ function App() {
               </div>
             </div>
 
-            {/* Task 4.4: Embedded Country Intelligence Card component */}
-            {
-              studyCountry && (
-                <div className="mt-6 bg-white rounded-xl shadow p-5 border border-slate-100">
-                  <h3 className="text-xl font-bold mb-4">
-                    🌍 Country Intelligence
-                  </h3>
-                  {
-                    countries
-                      .filter(
-                        c => c.name === studyCountry
-                      )
-                      .map(country => (
-                        <div
-                          key={country.id}
-                          className="space-y-2 font-medium text-slate-700"
-                        >
-                          <p>
-                            💰 Tuition:
-                            {" "}
-                            {country.tuition}
-                          </p>
-                          <p>
-                            🛂 Visa Difficulty:
-                            {" "}
-                            {country.visa_difficulty}
-                          </p>
-                          <p>
-                            🏡 PR Score:
-                            {" "}
-                            {country.pr_score}/10
-                          </p>
-                          <p>
-                            💼 Work Rights:
-                            {" "}
-                            {country.work_rights}
-                          </p>
-                          <p>
-                            🎓 Scholarships:
-                            {" "}
-                            {country.scholarships}
-                          </p>
-                        </div>
-                      ))
-                  }
-                </div>
-              )
-            }
+            {/* Task 4.4: Dynamic Country Intelligence Analytics Profile Overlay Card */}
+            {studyCountry && (
+              <div className="mt-6 bg-white rounded-xl shadow p-5 border border-slate-100">
+                <h3 className="text-xl font-bold mb-4">🌍 Country Intelligence</h3>
+                {countries
+                  .filter(c => c.name === studyCountry)
+                  .map(country => (
+                    <div key={country.id} className="space-y-2 font-medium text-slate-700">
+                      <p>💰 Tuition: {country.tuition}</p>
+                      <p>🛂 Visa Difficulty: {country.visa_difficulty}</p>
+                      <p>🏡 PR Score: {country.pr_score}/10</p>
+                      <p>💼 Work Rights: {country.work_rights}</p>
+                      <p>🎓 Scholarships: {country.scholarships}</p>
+                    </div>
+                  ))
+                }
+              </div>
+
+            )}
+
+            {targetCareer && studyCountry && (
+              <div className="pl-panel p-6 mt-6">
+                <h2 className="text-2xl font-bold mb-4">
+                  🎯 Career-Aligned Programs
+                </h2>
+
+                {universities
+                  .filter((u) => u.country === studyCountry)
+                  .map((u) => (
+                    <div
+                      key={u.id}
+                      className="border rounded-lg p-4 mb-4"
+                    >
+                      <h3 className="font-bold">
+                        {u.name}
+                      </h3>
+
+                      <p>
+                        QS Rank: {u.qs_rank}
+                      </p>
+
+                      <p>
+                        Recommended Course: {getRecommendedProgram(u)}
+                      </p>
+                    </div>
+                  ))}
+              </div>
+            )}
 
             <div className="mt-6 p-4 rounded-lg bg-slate-100">
-              <h3 className="font-semibold mb-2">
-                Coming Soon
-              </h3>
+              <h3 className="font-semibold mb-2">Coming Soon</h3>
               <ul className="list-disc ml-5 text-sm space-y-1 text-slate-600">
                 <li>University Recommendations</li>
                 <li>Scholarship Matching</li>

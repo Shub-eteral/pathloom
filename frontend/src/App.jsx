@@ -1,6 +1,9 @@
 import { useEffect, useState, useRef } from "react";
 import ComparisonChart from "./components/ComparisonChart";
 
+// Task 4.2: Import dynamic dataset for global study countries
+import countries from "./data/countries";
+
 const API_BASE = "http://127.0.0.1:8000";
 
 /* ============================================================
@@ -15,7 +18,7 @@ const API_BASE = "http://127.0.0.1:8000";
 function GlobalStyles() {
   return (
     <style>{`
-      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght=500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght=500;600&display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
 
       .pl-root {
         --canvas: #F5F6F9;
@@ -373,12 +376,17 @@ function CareerStats({ info, variant = "card" }) {
 }
 
 function App() {
+  const [mode, setMode] = useState("career");
   const [roles, setRoles] = useState([]);
   const [skills, setSkills] = useState({});
   const [isHydrated, setIsHydrated] = useState(false);
   
   const [selectedRole, setSelectedRole] = useState("");
   const [selectedSkills, setSelectedSkills] = useState([]);
+
+  // Persistent states for study mode pathways
+  const [studyCountry, setStudyCountry] = useState("");
+  const [studyDegree, setStudyDegree] = useState("");
 
   // Guarded Role Sync
   useEffect(() => {
@@ -390,12 +398,24 @@ function App() {
     }
   }, [selectedRole, isHydrated]);
 
-  // Guarded Skills Sync with debug logging
+  // Guarded Skills Sync
   useEffect(() => {
     if (!isHydrated) return;
     console.log("Selected Skills Syncing to Storage:", selectedSkills);
     localStorage.setItem("pathloom_skills", JSON.stringify(selectedSkills));
   }, [selectedSkills, isHydrated]);
+
+  // Sync dynamic country pathways across reboots
+  useEffect(() => {
+    if (!isHydrated) return;
+    localStorage.setItem("pathloom_country", studyCountry);
+  }, [studyCountry, isHydrated]);
+
+  // Sync dynamic degree targets across reboots
+  useEffect(() => {
+    if (!isHydrated) return;
+    localStorage.setItem("pathloom_degree", studyDegree);
+  }, [studyDegree, isHydrated]);
 
   const [skillSearch, setSkillSearch] = useState("");
   const [result, setResult] = useState(null);
@@ -444,6 +464,17 @@ function App() {
           const savedRole = localStorage.getItem("pathloom_role");
           const savedSkills = localStorage.getItem("pathloom_skills");
 
+          // Restore academic targets within structural hydration hooks
+          const savedCountry = localStorage.getItem("pathloom_country");
+          if (savedCountry) {
+            setStudyCountry(savedCountry);
+          }
+
+          const savedDegree = localStorage.getItem("pathloom_degree");
+          if (savedDegree) {
+            setStudyDegree(savedDegree);
+          }
+
           // Run hydration adjustments before switching the hydration flag
           if (savedRole) {
             setSelectedRole(savedRole);
@@ -491,6 +522,8 @@ function App() {
       target_role: selectedRole,
       selected_skills: selectedSkills,
       skill_count: selectedSkills.length,
+      study_country: studyCountry,
+      study_degree: studyDegree,
       exported_at: new Date().toISOString(),
     };
 
@@ -519,9 +552,14 @@ function App() {
         if (profile.target_role) {
           setSelectedRole(profile.target_role);
         }
-
         if (profile.selected_skills) {
           setSelectedSkills(profile.selected_skills);
+        }
+        if (profile.study_country) {
+          setStudyCountry(profile.study_country);
+        }
+        if (profile.study_degree) {
+          setStudyDegree(profile.study_degree);
         }
 
         alert("Profile imported successfully!");
@@ -670,6 +708,8 @@ function App() {
     setSelectedRole("");
     setSelectedSkills([]);
     setSkillSearch("");
+    setStudyCountry("");
+    setStudyDegree("");
     setResult(null);
     setAnalyzeError(null);
     setRecommendError(null);
@@ -731,12 +771,42 @@ function App() {
       </header>
 
       <main className="max-w-7xl mx-auto p-6 lg:p-8 space-y-6">
-        {/* Personal Profile Component Card */}
+        
+        {/* Journey Mode Selector Card */}
+        <div className="pl-panel p-6">
+          <h2 className="text-2xl font-bold mb-4">
+            Choose Your Journey
+          </h2>
+          <div className="flex gap-4">
+            <button
+              onClick={() => setMode("career")}
+              className={`px-6 py-3 rounded-lg font-bold ${
+                mode === "career"
+                  ? "bg-indigo-600 text-white"
+                  : "bg-slate-200 text-slate-800"
+              }`}
+            >
+              💼 Career
+            </button>
+            <button
+              onClick={() => setMode("study")}
+              className={`px-6 py-3 rounded-lg font-bold ${
+                mode === "study"
+                  ? "bg-indigo-600 text-white"
+                  : "bg-slate-200 text-slate-800"
+              }`}
+            >
+              🎓 Study
+            </button>
+          </div>
+        </div>
+
+        {/* Upgraded Personal Profile Card with multi-mode validation tracks */}
         <div className="pl-panel p-5">
           <div className="flex items-center justify-between">
             <div>
               <p className="pl-eyebrow">
-                Career Profile
+                User Profile
               </p>
               <h2 className="pl-panel-title mt-1">
                 👤 Personal Profile
@@ -747,7 +817,7 @@ function App() {
               <span>Saved</span>
             </div>
           </div>
-          <div className="grid md:grid-cols-4 gap-4 mt-5">
+          <div className="grid md:grid-cols-4 sm:grid-cols-2 gap-4 mt-5">
             <div className="pl-stat pl-stat--card p-3">
               <span className="pl-stat-label">
                 Target Role
@@ -768,23 +838,26 @@ function App() {
                 {selectedSkills.length}
               </strong>
             </div>
+            
+            {/* Extended Study Profile Analytics Display Fields */}
             <div className="pl-stat pl-stat--card p-3">
               <span className="pl-stat-label">
-                Profile Status
+                Study Country
               </span>
               <strong className="pl-stat-value">
-                Saved
+                {studyCountry || "Not Set"}
               </strong>
             </div>
             <div className="pl-stat pl-stat--card p-3">
               <span className="pl-stat-label">
-                Storage
+                Degree Goal
               </span>
               <strong className="pl-stat-value">
-                Local Browser
+                {studyDegree || "Not Set"}
               </strong>
             </div>
           </div>
+
           {/* Action Trigger Block for JSON Payload Delivery */}
           <div className="mt-5">
             <button
@@ -834,448 +907,570 @@ function App() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Career Mode Dashboard Shell */}
+        {mode === "career" && (
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-          {/* LEFT — setup */}
-          <section className="lg:col-span-5 pl-panel p-6 relative">
-            <div className="pl-panel-head pb-5 mb-5">
-              <h2 className="pl-panel-title">Build your profile</h2>
-              <p className="pl-panel-subtitle">Set a target role, then add the skills you bring.</p>
-            </div>
-
-            {/* Target role */}
-            <div className="space-y-2">
-              <label htmlFor="role-select" className="pl-field-label">Target role</label>
-              <div className="relative">
-                <select
-                  id="role-select"
-                  value={selectedRole}
-                  onChange={(e) => setSelectedRole(e.target.value)}
-                  className="pl-select px-4 py-3.5"
-                >
-                  <option value="">Select a role…</option>
-                  {roles.map((role) => (
-                    <option key={role.role_id} value={role.role_id}>
-                      {role.role_name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronIcon className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "var(--ink-faint)" }} />
-              </div>
-            </div>
-
-            {/* Skills */}
-            <div className="mt-6 relative" ref={dropdownRef}>
-              <label htmlFor="skill-search" className="pl-field-label mb-2">Your skills</label>
-
-              <div className="relative">
-                <SearchIcon className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "var(--ink-faint)" }} />
-                <input
-                  id="skill-search"
-                  type="text"
-                  role="combobox"
-                  aria-expanded={isDropdownOpen}
-                  aria-controls="skill-listbox"
-                  autoComplete="off"
-                  placeholder="Search skills…"
-                  value={skillSearch}
-                  onFocus={() => setIsDropdownOpen(true)}
-                  onChange={(e) => {
-                    setSkillSearch(e.target.value);
-                    setIsDropdownOpen(true);
-                  }}
-                  className="pl-input py-3.5"
-                  style={{ paddingLeft: "2.75rem", paddingRight: "1rem" }}
-                />
-              </div>
-
-              {isDropdownOpen && (
-                <div
-                  id="skill-listbox"
-                  role="listbox"
-                  className="pl-dropdown absolute left-0 right-0 mt-2 max-h-64 overflow-y-auto z-50 p-2"
-                >
-                  {filteredSkills.length === 0 ? (
-                    <div className="text-center py-4 text-xs font-medium" style={{ color: "var(--ink-faint)" }}>
-                      No skills match that search.
-                    </div>
-                  ) : (
-                    filteredSkills.map(([skillId, skillName]) => {
-                      const isChecked = selectedSkills.includes(String(skillId));
-                      return (
-                        <div
-                          key={skillId}
-                          role="option"
-                          aria-selected={isChecked}
-                          onClick={() => toggleSkill(skillId)}
-                          className={`pl-option flex items-center justify-between px-3 py-2.5 ${isChecked ? "pl-option--selected" : ""}`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <input
-                              type="checkbox"
-                              className="pl-checkbox rounded h-4 w-4 pointer-events-none"
-                              checked={isChecked}
-                              readOnly
-                            />
-                            <span>{skillName}</span>
-                          </div>
-                          {isChecked && <CheckIcon className="pl-option-check w-4 h-4" />}
-                        </div>
-                      );
-                    })
-                  )}
+              {/* LEFT — setup */}
+              <section className="lg:col-span-5 pl-panel p-6 relative">
+                <div className="pl-panel-head pb-5 mb-5">
+                  <h2 className="pl-panel-title">Build your profile</h2>
+                  <p className="pl-panel-subtitle">Set a target role, then add the skills you bring.</p>
                 </div>
-              )}
 
-              <div className="flex flex-wrap gap-1.5 mt-4 min-h-6">
-                {selectedSkills.length === 0 && !isDropdownOpen && (
-                  <span className="pl-chip-empty">No skills added yet</span>
-                )}
-                {selectedSkills.map((skillId) => (
-                  <span key={skillId} className="pl-chip py-1" style={{ paddingLeft: "0.75rem", paddingRight: "0.4rem" }}>
-                    {skills[skillId] ?? skillId}
-                    <button
-                      onClick={() => toggleSkill(skillId)}
-                      aria-label={`Remove ${skills[skillId] ?? skillId}`}
-                      className="pl-chip-remove p-0.5"
+                {/* Target role */}
+                <div className="space-y-2">
+                  <label htmlFor="role-select" className="pl-field-label">Target role</label>
+                  <div className="relative">
+                    <select
+                      id="role-select"
+                      value={selectedRole}
+                      onChange={(e) => setSelectedRole(e.target.value)}
+                      className="pl-select px-4 py-3.5"
                     >
-                      <CloseIcon className="w-3.5 h-3.5" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {analyzeError && (
-              <div className="pl-alert pl-alert--rust mt-4 p-3.5">{analyzeError}</div>
-            )}
-
-            <div className="flex flex-col gap-2 mt-8 pt-5" style={{ borderTop: "1px solid var(--line)" }}>
-              <div className="flex gap-2">
-                <button
-                  onClick={analyzeCareer}
-                  disabled={isLoading}
-                  className="pl-btn pl-btn--primary flex-1 px-5 py-3.5"
-                >
-                  {isLoading ? (
-                    <>
-                      <div className="pl-spinner" />
-                      <span>Analyzing…</span>
-                    </>
-                  ) : (
-                    <span>Analyze fit</span>
-                  )}
-                </button>
-
-                <button
-                  onClick={clearSelection}
-                  disabled={isLoading}
-                  className="pl-btn pl-btn--ghost px-4 py-3.5"
-                >
-                  Clear
-                </button>
-              </div>
-
-              <button
-                onClick={getRecommendations}
-                disabled={isLoading}
-                className="pl-btn pl-btn--outline w-full px-5 py-3.5"
-              >
-                Find alternative roles
-              </button>
-
-              {recommendError && (
-                <div className="pl-alert pl-alert--rust mt-1 p-3.5">{recommendError}</div>
-              )}
-            </div>
-          </section>
-
-          {/* RIGHT — results */}
-          <div className="lg:col-span-7 space-y-6">
-
-            {/* Fit analysis */}
-            <div className="pl-panel p-6">
-              <div className="pl-panel-head pb-4 mb-5">
-                <h2 className="pl-panel-title">Fit analysis</h2>
-                <p className="pl-panel-subtitle">See how your skills measure up to the role.</p>
-              </div>
-
-              {!result ? (
-                <EmptyState
-                  title="No analysis yet"
-                  body="Choose a target role and add your skills, then run the analysis."
-                />
-              ) : (
-                <div className="space-y-6">
-                  <div className="p-4 rounded-xl" style={{ background: "var(--canvas)", border: "1px solid var(--line)" }}>
-                    <div className="flex items-center justify-between mb-2.5">
-                      <span className="pl-field-label">Readiness score</span>
-                      <span className="pl-mono pl-hero-score text-base" style={{ color: "var(--teal)" }}>
-                        {result.readiness_score}%
-                      </span>
-                    </div>
-                    <ThreadGauge value={result.readiness_score} tone="teal" size="lg" />
-                  </div>
-
-                  <div className="pt-4" style={{ borderTop: "1px solid var(--line)" }}>
-                    <h3 className="pl-field-label mb-3">Skills to develop</h3>
-                    {result.missing_skills.length === 0 ? (
-                      <div className="pl-alert pl-alert--teal p-4 flex items-center gap-3">
-                        <CheckIcon className="w-5 h-5 shrink-0" />
-                        <span>You have all the required skills for this role!</span>
-                      </div>
-                    ) : (
-                      <div className="flex flex-wrap gap-2">
-                        {result.missing_skills.map((skill, index) => (
-                          <span key={index} className="pl-tag pl-tag--rust px-3 py-1">
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="pt-4" style={{ borderTop: "1px solid var(--line)" }}>
-                    <h3 className="pl-field-label mb-4">Upskilling roadmap</h3>
-                    <div className="space-y-4">
-                      {result.roadmap.map((step, index) => (
-                        <div key={index} className="pl-roadmap-item flex gap-4">
-                          <div className="pl-roadmap-index">{index + 1}</div>
-                          <div className="pl-roadmap-text flex-1 p-3.5 font-medium">
-                            {step.replace(/^Step \d+:\s*/, "")}
-                          </div>
-                        </div>
+                      <option value="">Select a role…</option>
+                      {roles.map((role) => (
+                        <option key={role.role_id} value={role.role_id}>
+                          {role.role_name}
+                        </option>
                       ))}
-                    </div>
+                    </select>
+                    <ChevronIcon className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "var(--ink-faint)" }} />
                   </div>
                 </div>
-              )}
-            </div>
 
-            {/* Recommendations grid panel container */}
-            <div className="pl-panel p-6">
-              <div className="pl-panel-head pb-4 mb-5">
-                <h2 className="pl-panel-title">Alternative matches</h2>
-                <p className="pl-panel-subtitle">Explore alternate professions with high core matching affinity ratios.</p>
-              </div>
+                {/* Skills */}
+                <div className="mt-6 relative" ref={dropdownRef}>
+                  <label htmlFor="skill-search" className="pl-field-label mb-2">Your skills</label>
 
-              {recommendations.length === 0 ? (
-                <EmptyState
-                  title="No recommendations yet"
-                  body="Add your unique skills matrix on the configuration frame to generate predictive alternatives maps."
-                />
-              ) : (
-                <div className="space-y-6">
-                  {bestMatch && (
-                    <div className="pl-hero p-6">
-                      <span className="pl-hero-badge px-2.5 py-0.5 inline-block font-bold">Best Match</span>
-                      <h3 className="pl-display pl-hero-role mt-2">{getRoleName(bestMatch.role_id)}</h3>
-                      
-                      <div className="mt-4 flex items-center justify-between mb-1.5">
-                        <span className="pl-field-label" style={{ color: "rgba(255,255,255,0.7)" }}>Match Score</span>
-                        <span className="pl-mono pl-hero-score text-base">{bestMatch.score}%</span>
-                      </div>
-                      <ThreadGauge value={bestMatch.score} tone="brass" size="md" light={true} />
+                  <div className="relative">
+                    <SearchIcon className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "var(--ink-faint)" }} />
+                    <input
+                      id="skill-search"
+                      type="text"
+                      role="combobox"
+                      aria-expanded={isDropdownOpen}
+                      aria-controls="skill-listbox"
+                      autoComplete="off"
+                      placeholder="Search skills…"
+                      value={skillSearch}
+                      onFocus={() => setIsDropdownOpen(true)}
+                      onChange={(e) => {
+                        setSkillSearch(e.target.value);
+                        setIsDropdownOpen(true);
+                      }}
+                      className="pl-input py-3.5"
+                      style={{ paddingLeft: "2.75rem", paddingRight: "1rem" }}
+                    />
+                  </div>
 
-                      <div className="mt-5 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.15)" }}>
-                        <CareerStats info={careerInfo[bestMatch.role_id]} variant="hero" />
-                      </div>
-
-                      {/* Alignment insight for best match container block */}
-                      {explanations[bestMatch.role_id] && (
-                        <div className="mt-4 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.15)" }}>
-                          <h4 className="font-semibold text-sm mb-2 pl-display">Why This Role?</h4>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <p className="font-medium mb-1 text-xs" style={{ color: "var(--teal-soft)" }}>Matched</p>
-                              <ul className="text-sm space-y-0.5 opacity-90">
-                                {explanations[bestMatch.role_id].matched.map((skill, index) => (
-                                  <li key={index} className="truncate">✓ {skill}</li>
-                                ))}
-                              </ul>
-                            </div>
-                            <div>
-                              <p className="font-medium mb-1 text-xs" style={{ color: "var(--rust-soft)" }}>Missing</p>
-                              <ul className="text-sm space-y-0.5 opacity-90">
-                                {explanations[bestMatch.role_id].missing.map((skill, index) => (
-                                  <li key={index} className="truncate">✗ {skill}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          </div>
+                  {isDropdownOpen && (
+                    <div
+                      id="skill-listbox"
+                      role="listbox"
+                      className="pl-dropdown absolute left-0 right-0 mt-2 max-h-64 overflow-y-auto z-50 p-2"
+                    >
+                      {filteredSkills.length === 0 ? (
+                        <div className="text-center py-4 text-xs font-medium" style={{ color: "var(--ink-faint)" }}>
+                          No skills match that search.
                         </div>
+                      ) : (
+                        filteredSkills.map(([skillId, skillName]) => {
+                          const isChecked = selectedSkills.includes(String(skillId));
+                          return (
+                            <div
+                              key={skillId}
+                              role="option"
+                              aria-selected={isChecked}
+                              onClick={() => toggleSkill(skillId)}
+                              className={`pl-option flex items-center justify-between px-3 py-2.5 ${isChecked ? "pl-option--selected" : ""}`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <input
+                                  type="checkbox"
+                                  className="pl-checkbox rounded h-4 w-4 pointer-events-none"
+                                  checked={isChecked}
+                                  readOnly
+                                />
+                                <span>{skillName}</span>
+                              </div>
+                              {isChecked && <CheckIcon className="pl-option-check w-4 h-4" />}
+                            </div>
+                          );
+                        })
                       )}
                     </div>
                   )}
 
-                  {otherRecommendations.length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {otherRecommendations.map((item) => (
-                        <div key={item.role_id} className="pl-card p-4 flex flex-col justify-between">
-                          <div>
-                            <span className="pl-eyebrow text-[10px]">Alternative track</span>
-                            <h4 className="font-bold text-slate-800 text-sm mt-0.5">{getRoleName(item.role_id)}</h4>
-                            
-                            <div className="mt-3 flex items-center justify-between mb-1">
-                              <span className="pl-field-label" style={{ fontSize: "0.58rem" }}>Match Score</span>
-                              <span className="pl-mono font-bold text-xs" style={{ color: "var(--indigo)" }}>{item.score}%</span>
+                  <div className="flex flex-wrap gap-1.5 mt-4 min-h-6">
+                    {selectedSkills.length === 0 && !isDropdownOpen && (
+                      <span className="pl-chip-empty">No skills added yet</span>
+                    )}
+                    {selectedSkills.map((skillId) => (
+                      <span key={skillId} className="pl-chip py-1" style={{ paddingLeft: "0.75rem", paddingRight: "0.4rem" }}>
+                        {skills[skillId] ?? skillId}
+                        <button
+                          onClick={() => toggleSkill(skillId)}
+                          aria-label={`Remove ${skills[skillId] ?? skillId}`}
+                          className="pl-chip-remove p-0.5"
+                        >
+                          <CloseIcon className="w-3.5 h-3.5" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {analyzeError && (
+                  <div className="pl-alert pl-alert--rust mt-4 p-3.5">{analyzeError}</div>
+                )}
+
+                <div className="flex flex-col gap-2 mt-8 pt-5" style={{ borderTop: "1px solid var(--line)" }}>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={analyzeCareer}
+                      disabled={isLoading}
+                      className="pl-btn pl-btn--primary flex-1 px-5 py-3.5"
+                    >
+                      {isLoading ? (
+                        <>
+                          <div className="pl-spinner" />
+                          <span>Analyzing…</span>
+                        </>
+                      ) : (
+                        <span>Analyze fit</span>
+                      )}
+                    </button>
+
+                    <button
+                      onClick={clearSelection}
+                      disabled={isLoading}
+                      className="pl-btn pl-btn--ghost px-4 py-3.5"
+                    >
+                      Clear
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={getRecommendations}
+                    disabled={isLoading}
+                    className="pl-btn pl-btn--outline w-full px-5 py-3.5"
+                  >
+                    Find alternative roles
+                  </button>
+
+                  {recommendError && (
+                    <div className="pl-alert pl-alert--rust mt-1 p-3.5">{recommendError}</div>
+                  )}
+                </div>
+              </section>
+
+              {/* RIGHT — results */}
+              <div className="lg:col-span-7 space-y-6">
+
+                {/* Fit analysis */}
+                <div className="pl-panel p-6">
+                  <div className="pl-panel-head pb-4 mb-5">
+                    <h2 className="pl-panel-title">Fit analysis</h2>
+                    <p className="pl-panel-subtitle">See how your skills measure up to the role.</p>
+                  </div>
+
+                  {!result ? (
+                    <EmptyState
+                      title="No analysis yet"
+                      body="Choose a target role and add your skills, then run the analysis."
+                    />
+                  ) : (
+                    <div className="space-y-6">
+                      <div className="p-4 rounded-xl" style={{ background: "var(--canvas)", border: "1px solid var(--line)" }}>
+                        <div className="flex items-center justify-between mb-2.5">
+                          <span className="pl-field-label">Readiness score</span>
+                          <span className="pl-mono pl-hero-score text-base" style={{ color: "var(--teal)" }}>
+                            {result.readiness_score}%
+                          </span>
+                        </div>
+                        <ThreadGauge value={result.readiness_score} tone="teal" size="lg" />
+                      </div>
+
+                      <div className="pt-4" style={{ borderTop: "1px solid var(--line)" }}>
+                        <h3 className="pl-field-label mb-3">Skills to develop</h3>
+                        {result.missing_skills.length === 0 ? (
+                          <div className="pl-alert pl-alert--teal p-4 flex items-center gap-3">
+                            <CheckIcon className="w-5 h-5 shrink-0" />
+                            <span>You have all the required skills for this role!</span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-wrap gap-2">
+                            {result.missing_skills.map((skill, index) => (
+                              <span key={index} className="pl-tag pl-tag--rust px-3 py-1">
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="pt-4" style={{ borderTop: "1px solid var(--line)" }}>
+                        <h3 className="pl-field-label mb-4">Upskilling roadmap</h3>
+                        <div className="space-y-4">
+                          {result.roadmap.map((step, index) => (
+                            <div key={index} className="pl-roadmap-item flex gap-4">
+                              <div className="pl-roadmap-index">{index + 1}</div>
+                              <div className="pl-roadmap-text flex-1 p-3.5 font-medium">
+                                {step.replace(/^Step \d+:\s*/, "")}
+                              </div>
                             </div>
-                            <ThreadGauge value={item.score} tone="indigo" size="sm" />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Recommendations grid panel container */}
+                <div className="pl-panel p-6">
+                  <div className="pl-panel-head pb-4 mb-5">
+                    <h2 className="pl-panel-title">Alternative matches</h2>
+                    <p className="pl-panel-subtitle">Explore alternate professions with high core matching affinity ratios.</p>
+                  </div>
+
+                  {recommendations.length === 0 ? (
+                    <EmptyState
+                      title="No recommendations yet"
+                      body="Add your unique skills matrix on the configuration frame to generate predictive alternatives maps."
+                    />
+                  ) : (
+                    <div className="space-y-6">
+                      {bestMatch && (
+                        <div className="pl-hero p-6">
+                          <span className="pl-hero-badge px-2.5 py-0.5 inline-block font-bold">Best Match</span>
+                          <h3 className="pl-display pl-hero-role mt-2">{getRoleName(bestMatch.role_id)}</h3>
+                          
+                          <div className="mt-4 flex items-center justify-between mb-1.5">
+                            <span className="pl-field-label" style={{ color: "rgba(255,255,255,0.7)" }}>Match Score</span>
+                            <span className="pl-mono pl-hero-score text-base">{bestMatch.score}%</span>
+                          </div>
+                          <ThreadGauge value={bestMatch.score} tone="brass" size="md" light={true} />
+
+                          <div className="mt-5 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.15)" }}>
+                            <CareerStats info={careerInfo[bestMatch.role_id]} variant="hero" />
                           </div>
 
-                          <div className="mt-4">
-                            <CareerStats info={careerInfo[item.role_id]} variant="card" />
-                          </div>
-
-                          {/* Why This Role? */}
-                          {explanations[item.role_id] && (
-                            <div className="mt-4 pt-4" style={{ borderTop: "1px solid var(--line)" }}>
-                              <h4 className="font-semibold text-sm mb-2 pl-display">
-                                Why This Role?
-                              </h4>
+                          {/* Alignment insight for best match container block */}
+                          {explanations[bestMatch.role_id] && (
+                            <div className="mt-4 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.15)" }}>
+                              <h4 className="font-semibold text-sm mb-2 pl-display">Why This Role?</h4>
                               <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                  <p className="font-medium mb-1 text-xs" style={{ color: "var(--teal)" }}>
-                                    Matched
-                                  </p>
-                                  <ul className="text-sm space-y-0.5" style={{ color: "var(--ink-soft)" }}>
-                                    {explanations[item.role_id].matched.map((skill, index) => (
-                                      <li key={index} className="truncate">
-                                        ✓ {skill}
-                                      </li>
+                                  <p className="font-medium mb-1 text-xs" style={{ color: "var(--teal-soft)" }}>Matched</p>
+                                  <ul className="text-sm space-y-0.5 opacity-90">
+                                    {explanations[bestMatch.role_id].matched.map((skill, index) => (
+                                      <li key={index} className="truncate">✓ {skill}</li>
                                     ))}
                                   </ul>
                                 </div>
                                 <div>
-                                  <p className="font-medium mb-1 text-xs" style={{ color: "var(--rust)" }}>
-                                    Missing
-                                  </p>
-                                  <ul className="text-sm space-y-0.5" style={{ color: "var(--ink-soft)" }}>
-                                    {explanations[item.role_id].missing.map((skill, index) => (
-                                      <li key={index} className="truncate">
-                                        ✗ {skill}
-                                      </li>
+                                  <p className="font-medium mb-1 text-xs" style={{ color: "var(--rust-soft)" }}>Missing</p>
+                                  <ul className="text-sm space-y-0.5 opacity-90">
+                                    {explanations[bestMatch.role_id].missing.map((skill, index) => (
+                                      <li key={index} className="truncate">✗ {skill}</li>
                                     ))}
                                   </ul>
                                 </div>
                               </div>
                             </div>
                           )}
-
-                          {/* AI Insight section container block */}
-                          {
-                            insights[item.role_id] && (
-                              <div className="mt-4">
-                                <div className="border border-indigo-200 rounded-xl p-4" style={{ backgroundColor: "var(--indigo-soft)" }}>
-                                  <h4 className="font-semibold text-indigo-700 mb-2" style={{ color: "var(--indigo)" }}>
-                                    🤖 AI Insight
-                                  </h4>
-                                  <p className="text-sm text-slate-700" style={{ color: "var(--ink-soft)" }}>
-                                    {insights[item.role_id]}
-                                  </p>
-                                </div>
-                              </div>
-                            )
-                          }
                         </div>
-                      ))}
+                      )}
+
+                      {otherRecommendations.length > 0 && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {otherRecommendations.map((item) => (
+                            <div key={item.role_id} className="pl-card p-4 flex flex-col justify-between">
+                              <div>
+                                <span className="pl-eyebrow text-[10px]">Alternative track</span>
+                                <h4 className="font-bold text-slate-800 text-sm mt-0.5">{getRoleName(item.role_id)}</h4>
+                                
+                                <div className="mt-3 flex items-center justify-between mb-1">
+                                  <span className="pl-field-label" style={{ fontSize: "0.58rem" }}>Match Score</span>
+                                  <span className="pl-mono font-bold text-xs" style={{ color: "var(--indigo)" }}>{item.score}%</span>
+                                </div>
+                                <ThreadGauge value={item.score} tone="indigo" size="sm" />
+                              </div>
+
+                              <div className="mt-4">
+                                <CareerStats info={careerInfo[item.role_id]} variant="card" />
+                              </div>
+
+                              {/* Why This Role? */}
+                              {explanations[item.role_id] && (
+                                <div className="mt-4 pt-4" style={{ borderTop: "1px solid var(--line)" }}>
+                                  <h4 className="font-semibold text-sm mb-2 pl-display">
+                                    Why This Role?
+                                  </h4>
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <p className="font-medium mb-1 text-xs" style={{ color: "var(--teal)" }}>
+                                        Matched
+                                      </p>
+                                      <ul className="text-sm space-y-0.5" style={{ color: "var(--ink-soft)" }}>
+                                        {explanations[item.role_id].matched.map((skill, index) => (
+                                          <li key={index} className="truncate">
+                                            ✓ {skill}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                    <div>
+                                      <p className="font-medium mb-1 text-xs" style={{ color: "var(--rust)" }}>
+                                        Missing
+                                      </p>
+                                      <ul className="text-sm space-y-0.5" style={{ color: "var(--ink-soft)" }}>
+                                        {explanations[item.role_id].missing.map((skill, index) => (
+                                          <li key={index} className="truncate">
+                                            ✗ {skill}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* AI Insight section container block */}
+                              {
+                                insights[item.role_id] && (
+                                  <div className="mt-4">
+                                    <div className="border border-indigo-200 rounded-xl p-4" style={{ backgroundColor: "var(--indigo-soft)" }}>
+                                      <h4 className="font-semibold text-indigo-700 mb-2" style={{ color: "var(--indigo)" }}>
+                                        🤖 AI Insight
+                                      </h4>
+                                      <p className="text-sm text-slate-700" style={{ color: "var(--ink-soft)" }}>
+                                        {insights[item.role_id]}
+                                      </p>
+                                    </div>
+                                  </div>
+                                )
+                              }
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
-              )}
+
+                {/* Career Comparison Section Frame Area */}
+                {comparisonData.length > 0 && (
+                  <section className="pl-panel p-6 mt-10">
+                    <div className="pl-panel-head pb-4 mb-5">
+                      <h2 className="pl-panel-title flex items-center gap-2">
+                        <span>⚖️</span> Career Comparison
+                      </h2>
+                      <p className="pl-panel-subtitle">Side-by-side metric cross-matching analysis for top tracked roles.</p>
+                    </div>
+
+                    {/* Champion Recommended Career Showcase Element */}
+                    {bestCareer && (
+                      <div className="mb-8 rounded-2xl bg-gradient-to-r from-green-600 to-emerald-600 text-white p-6 shadow-lg">
+                        <div className="text-sm font-semibold uppercase tracking-wider pl-mono">
+                          🏆 Recommended Career
+                        </div>
+                        <h2 className="text-3xl font-bold mt-2 pl-display">
+                          {bestCareer.role_name}
+                        </h2>
+                        <p className="mt-2 text-lg font-medium">
+                          Match Score: {bestCareer.readiness_score}%
+                        </p>
+                        <div className="mt-4 text-sm space-y-1.5 pl-mono">
+                          <p>💰 Salary: <span className="font-semibold">{bestCareer.salary}</span></p>
+                          <p>📈 Demand: <span className="font-semibold">{bestCareer.demand}</span></p>
+                          <p>⚡ Difficulty: <span className="font-semibold">{bestCareer.difficulty}</span></p>
+                          <p>⏳ Learning Time: <span className="font-semibold">{bestCareer.learning_time}</span></p>
+                        </div>
+                        <div className="mt-4 bg-white/20 backdrop-blur-sm rounded-lg p-3 text-sm font-medium">
+                          Highest readiness score among compared careers and strongest alignment with your current skills.
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Comparison Chart Component Section */}
+                    {comparisonData.length > 0 && (
+                      <div className="mb-8 bg-white rounded-2xl shadow p-6 border border-slate-100">
+                        <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-slate-800">
+                          <span>📊</span> Readiness Comparison
+                        </h2>
+                        <ComparisonChart data={comparisonData} />
+                      </div>
+                    )}
+
+                    {/* Grid Comparison Table */}
+                    <div className="overflow-x-auto">
+                      <table className="pl-table">
+                        <thead>
+                          <tr>
+                            <th>Career</th>
+                            <th>Readiness</th>
+                            <th>Salary</th>
+                            <th>Demand</th>
+                            <th>Difficulty</th>
+                            <th>Learning Time</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {comparisonData.map((career) => (
+                            <tr key={career.role_id}>
+                              <td className="font-semibold text-slate-800" style={{ color: "var(--ink)" }}>
+                                {career.role_name}
+                              </td>
+                              <td>
+                                <div className="flex items-center gap-2.5 min-w-[100px]">
+                                  <span className="pl-mono font-semibold" style={{ color: "var(--teal)" }}>
+                                    {career.readiness_score}%
+                                  </span>
+                                  <div className="flex-1">
+                                    <ThreadGauge value={career.readiness_score} tone="teal" size="sm" />
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="pl-mono font-medium">{career.salary}</td>
+                              <td>
+                                <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                  {career.demand}
+                                </span>
+                              </td>
+                              <td>{career.difficulty}</td>
+                              <td className="text-xs">{career.learning_time}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+                )}
+
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Study Mode Planner Dashboard Shell */}
+        {mode === "study" && (
+          <div className="pl-panel p-6">
+            <h2 className="text-3xl font-bold mb-4">
+              🎓 Study Planner
+            </h2>
+            <p className="text-slate-600 mb-6">
+              Plan your global education journey.
+            </p>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="block mb-2 font-medium">
+                  Target Country
+                </label>
+                {/* Connected dynamic study country selector options mapping */}
+                <select 
+                  className="w-full p-3 border rounded-lg"
+                  value={studyCountry}
+                  onChange={(e) => setStudyCountry(e.target.value)}
+                >
+                  <option value="">Select Country</option>
+                  {
+                    countries.map((country) => (
+                      <option
+                        key={country.id}
+                        value={country.name}
+                      >
+                        {country.name}
+                      </option>
+                    ))
+                  }
+                </select>
+              </div>
+
+              <div>
+                <label className="block mb-2 font-medium">
+                  Degree Level
+                </label>
+                <select 
+                  className="w-full p-3 border rounded-lg"
+                  value={studyDegree}
+                  onChange={(e) => setStudyDegree(e.target.value)}
+                >
+                  <option value="">Select Degree</option>
+                  <option value="Bachelor's">Bachelor's</option>
+                  <option value="Master's">Master's</option>
+                  <option value="PhD">PhD</option>
+                </select>
+              </div>
             </div>
 
-            {/* Career Comparison Section Frame Area */}
-            {comparisonData.length > 0 && (
-              <section className="pl-panel p-6 mt-10">
-                <div className="pl-panel-head pb-4 mb-5">
-                  <h2 className="pl-panel-title flex items-center gap-2">
-                    <span>⚖️</span> Career Comparison
-                  </h2>
-                  <p className="pl-panel-subtitle">Side-by-side metric cross-matching analysis for top tracked roles.</p>
+            {/* Task 4.4: Embedded Country Intelligence Card component */}
+            {
+              studyCountry && (
+                <div className="mt-6 bg-white rounded-xl shadow p-5 border border-slate-100">
+                  <h3 className="text-xl font-bold mb-4">
+                    🌍 Country Intelligence
+                  </h3>
+                  {
+                    countries
+                      .filter(
+                        c => c.name === studyCountry
+                      )
+                      .map(country => (
+                        <div
+                          key={country.id}
+                          className="space-y-2 font-medium text-slate-700"
+                        >
+                          <p>
+                            💰 Tuition:
+                            {" "}
+                            {country.tuition}
+                          </p>
+                          <p>
+                            🛂 Visa Difficulty:
+                            {" "}
+                            {country.visa_difficulty}
+                          </p>
+                          <p>
+                            🏡 PR Score:
+                            {" "}
+                            {country.pr_score}/10
+                          </p>
+                          <p>
+                            💼 Work Rights:
+                            {" "}
+                            {country.work_rights}
+                          </p>
+                          <p>
+                            🎓 Scholarships:
+                            {" "}
+                            {country.scholarships}
+                          </p>
+                        </div>
+                      ))
+                  }
                 </div>
+              )
+            }
 
-                {/* Champion Recommended Career Showcase Element */}
-                {bestCareer && (
-                  <div className="mb-8 rounded-2xl bg-gradient-to-r from-green-600 to-emerald-600 text-white p-6 shadow-lg">
-                    <div className="text-sm font-semibold uppercase tracking-wider pl-mono">
-                      🏆 Recommended Career
-                    </div>
-                    <h2 className="text-3xl font-bold mt-2 pl-display">
-                      {bestCareer.role_name}
-                    </h2>
-                    <p className="mt-2 text-lg font-medium">
-                      Match Score: {bestCareer.readiness_score}%
-                    </p>
-                    <div className="mt-4 text-sm space-y-1.5 pl-mono">
-                      <p>💰 Salary: <span className="font-semibold">{bestCareer.salary}</span></p>
-                      <p>📈 Demand: <span className="font-semibold">{bestCareer.demand}</span></p>
-                      <p>⚡ Difficulty: <span className="font-semibold">{bestCareer.difficulty}</span></p>
-                      <p>⏳ Learning Time: <span className="font-semibold">{bestCareer.learning_time}</span></p>
-                    </div>
-                    <div className="mt-4 bg-white/20 backdrop-blur-sm rounded-lg p-3 text-sm font-medium">
-                      Highest readiness score among compared careers and strongest alignment with your current skills.
-                    </div>
-                  </div>
-                )}
-
-                {/* Comparison Chart Component Section */}
-                {comparisonData.length > 0 && (
-                  <div className="mb-8 bg-white rounded-2xl shadow p-6 border border-slate-100">
-                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-slate-800">
-                      <span>📊</span> Readiness Comparison
-                    </h2>
-                    <ComparisonChart data={comparisonData} />
-                  </div>
-                )}
-
-                {/* Grid Comparison Table */}
-                <div className="overflow-x-auto">
-                  <table className="pl-table">
-                    <thead>
-                      <tr>
-                        <th>Career</th>
-                        <th>Readiness</th>
-                        <th>Salary</th>
-                        <th>Demand</th>
-                        <th>Difficulty</th>
-                        <th>Learning Time</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {comparisonData.map((career) => (
-                        <tr key={career.role_id}>
-                          <td className="font-semibold text-slate-800" style={{ color: "var(--ink)" }}>
-                            {career.role_name}
-                          </td>
-                          <td>
-                            <div className="flex items-center gap-2.5 min-w-[100px]">
-                              <span className="pl-mono font-semibold" style={{ color: "var(--teal)" }}>
-                                {career.readiness_score}%
-                              </span>
-                              <div className="flex-1">
-                                <ThreadGauge value={career.readiness_score} tone="teal" size="sm" />
-                              </div>
-                            </div>
-                          </td>
-                          <td className="pl-mono font-medium">{career.salary}</td>
-                          <td>
-                            <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
-                              {career.demand}
-                            </span>
-                          </td>
-                          <td>{career.difficulty}</td>
-                          <td className="text-xs">{career.learning_time}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-            )}
-
+            <div className="mt-6 p-4 rounded-lg bg-slate-100">
+              <h3 className="font-semibold mb-2">
+                Coming Soon
+              </h3>
+              <ul className="list-disc ml-5 text-sm space-y-1 text-slate-600">
+                <li>University Recommendations</li>
+                <li>Scholarship Matching</li>
+                <li>Country Comparison</li>
+                <li>Admission Roadmaps</li>
+                <li>Visa Planning</li>
+              </ul>
+            </div>
           </div>
-        </div>
+        )}
+
       </main>
     </div>
   );

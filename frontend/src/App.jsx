@@ -4,8 +4,9 @@ import ComparisonChart from "./components/ComparisonChart";
 // Task 4.2: Import dynamic dataset for global study countries
 import countries from "./data/countries";
 import universities from "./data/universities";
+import scholarships from "./data/scholarships";
 
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
 
 /* ============================================================
    PATHLOOM — design tokens
@@ -346,6 +347,20 @@ function ThreadGauge({ value, tone = "indigo", size = "md", light = false }) {
   );
 }
 
+function ExamOptionBox({ label, value, selected, onSelect, disabled }) {
+  return (
+    <button
+      type="button"
+      onClick={() => !disabled && onSelect(value)}
+      aria-pressed={selected}
+      disabled={disabled}
+      className={`pl-chip font-semibold transition ${selected ? "bg-indigo-600 text-white border-indigo-600" : "bg-slate-100 text-slate-700 border-slate-200"} ${disabled ? "opacity-70 cursor-not-allowed" : "cursor-pointer"}`}
+    >
+      {label}
+    </button>
+  );
+}
+
 function EmptyState({ title, body }) {
   return (
     <div className="pl-empty text-center py-14 px-8">
@@ -381,26 +396,47 @@ function App() {
   const [roles, setRoles] = useState([]);
   const [skills, setSkills] = useState({});
   const [isHydrated, setIsHydrated] = useState(false);
-  
+
   const [selectedRole, setSelectedRole] = useState("");
   const [selectedSkills, setSelectedSkills] = useState([]);
 
   // Persistent states for study mode pathways
   const [studyCountry, setStudyCountry] = useState("");
-  const [studyDegree, setStudyDegree] = useState("");
   const [targetCareer, setTargetCareer] = useState("");
-  
+
   // Academic Profile States
   const [degreeLevel, setDegreeLevel] = useState("");
   const [gpaScale, setGpaScale] = useState("10");
   const [gpaScore, setGpaScore] = useState("");
-  
+  const [admissionExam, setAdmissionExam] = useState("");
+  const [languageExam, setLanguageExam] = useState("IELTS");
+  const [preferredIntake, setPreferredIntake] = useState("");
+  const [budget, setBudget] = useState("");
+  const [citizenshipStatus, setCitizenshipStatus] = useState("");
+  const [currentEducation, setCurrentEducation] = useState("");
+  const [workExperienceYears, setWorkExperienceYears] = useState("");
+  const [leadershipExperience, setLeadershipExperience] = useState("");
+  const [researchProjects, setResearchProjects] = useState("");
+  const [publicationCount, setPublicationCount] = useState("");
+  const [facultyMatch, setFacultyMatch] = useState(false);
+  const [storageStatus, setStorageStatus] = useState("saved");
+  const [importAlert, setImportAlert] = useState(null);
+  const [countryPreferences, setCountryPreferences] = useState("");
+  const [documentReadiness, setDocumentReadiness] = useState({
+    sop: false,
+    lor: false,
+    cv: false,
+    passport: false,
+    transcripts: false,
+  });
+
   // Standardized Testing Exam scores state object
-  const [examScores, setExamScores] = useState({ IELTS: "", GRE: "", JLPT: "" });
+  const [examScores, setExamScores] = useState({ IELTS: "", TOEFL: "", GRE: "", GMAT: "", SAT: "", ACT: "", JLPT: "" });
 
   // University Search State & Target Selected University Profile State
   const [universitySearch, setUniversitySearch] = useState("");
   const [selectedUniversity, setSelectedUniversity] = useState(null);
+  const [universitySort, setUniversitySort] = useState("qs");
 
   const [skillSearch, setSkillSearch] = useState("");
   const [result, setResult] = useState(null);
@@ -409,6 +445,7 @@ function App() {
   const [analyzeError, setAnalyzeError] = useState(null);
   const [recommendError, setRecommendError] = useState(null);
   const [recommendations, setRecommendations] = useState([]);
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
   const [comparisonData, setComparisonData] = useState([]);
   const [bestCareer, setBestCareer] = useState(null);
 
@@ -420,63 +457,496 @@ function App() {
   const dropdownRef = useRef(null);
 
   // Central Core Eligibility Engine Method
+  const getRecommendedProgramDetails = (university) => {
+    if (!university?.programs?.length) return null;
+    if (targetCareer && degreeLevel) {
+      const exactProgram = university.programs.find(
+        (program) => program.level === degreeLevel && program.careers?.includes(targetCareer)
+      );
+      if (exactProgram) return exactProgram;
+    }
+
+    if (targetCareer) {
+      const careerProgram = university.programs.find((program) => program.careers?.includes(targetCareer));
+      if (careerProgram) return careerProgram;
+    }
+
+    if (degreeLevel) {
+      const degreeProgram = university.programs.find((program) => program.level === degreeLevel);
+      if (degreeProgram) return degreeProgram;
+    }
+
+    return university.programs[0];
+  };
+
+  const getProgramOptionsForCountry = (country, degree, career) => {
+    const availablePrograms = universities
+      .filter((u) => !country || u.country === country)
+      .flatMap((u) => u.programs || []);
+
+    return availablePrograms.filter((program) => {
+      if (degree && program.level !== degree) return false;
+      if (career && !program.careers?.includes(career)) return false;
+      return true;
+    });
+  };
+
+  const getSupportedLanguageExams = () => {
+    const programs = selectedUniversity
+      ? [getRecommendedProgramDetails(selectedUniversity)].filter(Boolean)
+      : getProgramOptionsForCountry(studyCountry, degreeLevel, targetCareer);
+
+    const exams = new Set();
+    programs.forEach((program) => {
+      if (program?.requirements?.ielts) exams.add("IELTS");
+      if (program?.requirements?.toefl) exams.add("TOEFL");
+    });
+
+    return exams.size ? Array.from(exams) : ["IELTS", "TOEFL"];
+  };
+
+  const getAdmissionExamOptions = () => {
+    const program = getRecommendedProgramDetails(selectedUniversity);
+    const requirements = program?.requirements || {};
+    const options = new Set();
+
+    if (degreeLevel === "Bachelor's") {
+      if (requirements.sat) options.add("SAT");
+      if (requirements.act) options.add("ACT");
+      if (!options.size) {
+        options.add("SAT");
+        options.add("ACT");
+      }
+    }
+
+    if (degreeLevel === "Master's") {
+      if (requirements.gre) options.add("GRE");
+      if (requirements.gmat) options.add("GMAT");
+      if (!options.size) {
+        options.add("GRE");
+        options.add("GMAT");
+      }
+    }
+
+    if (degreeLevel === "PhD") {
+      options.add("GRE");
+    }
+
+    return Array.from(options);
+  };
+
+  const getAdmissionExamHelperText = () => {
+    if (!degreeLevel) return "Choose a degree level to see admission test guidance.";
+    const examOptions = getAdmissionExamOptions();
+    if (examOptions.length === 1) return `This degree path typically requires ${examOptions[0]}.`;
+    return `Select the admission exam accepted by your preferred program: ${examOptions.join(" or ")}.`;
+  };
+
+  const parseBudgetValue = (value) => {
+    const numericText = String(value || "").replace(/[^0-9.]/g, "");
+    const parsed = parseFloat(numericText);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
+
+  const doesUniversityMatchBudget = (university) => {
+    const limit = parseBudgetValue(budget);
+    if (limit === null) return true;
+    const totalAnnualCost = Number(university.tuition || 0) + Number(university.living_cost || 0);
+    return totalAnnualCost <= limit;
+  };
+
+  const doesUniversityMatchIntake = (university) => {
+    if (!preferredIntake) return true;
+    return university.intakes?.some((intake) =>
+      intake.toLowerCase().includes(preferredIntake.toLowerCase())
+    );
+  };
+
+  const getMatchScore = (university) => {
+    const program = getRecommendedProgramDetails(university);
+    const requirements = program?.requirements || {};
+    const gpa = parseFloat(gpaScore || 0);
+    const ielts = parseFloat(examScores?.["IELTS"] || 0);
+    const toefl = parseFloat(examScores?.["TOEFL"] || 0);
+    const gre = parseFloat(examScores?.["GRE"] || 0);
+    const gmat = parseFloat(examScores?.["GMAT"] || 0);
+    const sat = parseFloat(examScores?.["SAT"] || 0);
+    const act = parseFloat(examScores?.["ACT"] || 0);
+    const jlpt = examScores?.["JLPT"] || "";
+    const requiredGpa = gpaScale === "10" ? requirements.gpa10 : requirements.gpa4;
+
+    const gpaScorePercent = requiredGpa ? Math.min(100, (gpa / requiredGpa) * 100) : 100;
+
+    let languageScorePercent = 100;
+    if (requirements.ielts || requirements.toefl) {
+      if (languageExam === "IELTS" && requirements.ielts) {
+        languageScorePercent = Math.min(100, (ielts / requirements.ielts) * 100);
+      } else if (languageExam === "TOEFL" && requirements.toefl) {
+        languageScorePercent = Math.min(100, (toefl / requirements.toefl) * 100);
+      } else if (requirements.ielts) {
+        languageScorePercent = Math.min(100, (ielts / requirements.ielts) * 100);
+      } else if (requirements.toefl) {
+        languageScorePercent = Math.min(100, (toefl / requirements.toefl) * 100);
+      }
+    }
+
+    let admissionScorePercent = 100;
+    if (degreeLevel === "Bachelor's" && (requirements.sat || requirements.act)) {
+      if (admissionExam === "SAT" && requirements.sat) {
+        admissionScorePercent = Math.min(100, (sat / requirements.sat) * 100);
+      } else if (admissionExam === "ACT" && requirements.act) {
+        admissionScorePercent = Math.min(100, (act / requirements.act) * 100);
+      } else {
+        admissionScorePercent = 0;
+      }
+    }
+    if (degreeLevel === "Master's" && (requirements.gre || requirements.gmat)) {
+      if (admissionExam === "GRE" && requirements.gre) {
+        admissionScorePercent = Math.min(100, (gre / requirements.gre) * 100);
+      } else if (admissionExam === "GMAT" && requirements.gmat) {
+        admissionScorePercent = Math.min(100, (gmat / requirements.gmat) * 100);
+      } else {
+        admissionScorePercent = 0;
+      }
+    }
+    if (degreeLevel === "PhD" && requirements.gre) {
+      admissionScorePercent = Math.min(100, (gre / requirements.gre) * 100);
+    }
+
+    const jlptScorePercent = requirements.jlpt
+      ? (jlptSatisfiesRequirement(jlpt, requirements.jlpt) ? 100 : 0)
+      : 100;
+    const programMatchBonus = getRecommendedProgram(university) !== "No matching program" ? 10 : 0;
+
+    const rawScore =
+      gpaScorePercent * 0.35 +
+      languageScorePercent * 0.25 +
+      admissionScorePercent * 0.2 +
+      jlptScorePercent * 0.1 +
+      programMatchBonus;
+
+    return Math.max(0, Math.min(100, Math.round(rawScore)));
+  };
+
+  /* ---------- Day 19 Added Logic Elements ---------- */
+
+  const getAdmissionChance = (university) => {
+    let score = 0;
+    const requirements = university.requirements;
+    const gpa = parseFloat(gpaScore || 0);
+    const requiredGpa = gpaScale === "10" ? requirements.gpa10 : requirements.gpa4;
+
+    if (requiredGpa) {
+      score += Math.min(40, (gpa / requiredGpa) * 40);
+    }
+
+    const languageScore = parseFloat(examScores[languageExam] || 0);
+    if (requirements.ielts) {
+      score += Math.min(25, (languageScore / requirements.ielts) * 25);
+    }
+
+    const admissionScore = parseFloat(examScores[admissionExam] || 0);
+    if (requirements.gre && admissionExam === "GRE") {
+      score += Math.min(20, (admissionScore / requirements.gre) * 20);
+    }
+
+    if (getScholarshipChanceScore(university) >= 80) {
+      score += 10;
+    }
+
+    if (getProfileCompleteness() >= 80) {
+      score += 5;
+    }
+
+    return Math.max(0, Math.min(100, Math.round(score)));
+  };
+
+  const getAdmissionTier = (chance) => {
+    if (chance >= 90) return "SAFE";
+    if (chance >= 75) return "TARGET";
+    return "REACH";
+  };
+
+  const getAdmissionReasons = (university) => {
+    const reasons = [];
+    const requirements = university.requirements;
+    const gpa = parseFloat(gpaScore || 0);
+    const requiredGpa = gpaScale === "10" ? requirements.gpa10 : requirements.gpa4;
+
+    if (gpa >= requiredGpa) {
+      reasons.push("✓ GPA exceeds requirement");
+    } else {
+      reasons.push("✗ GPA below requirement");
+    }
+
+    const languageScore = parseFloat(examScores[languageExam] || 0);
+    if (languageScore >= requirements.ielts) {
+      reasons.push("✓ Language requirement met");
+    } else {
+      reasons.push("✗ Language score below requirement");
+    }
+
+    if (requirements.gre && admissionExam === "GRE") {
+      const gre = parseFloat(examScores.GRE || 0);
+      if (gre >= requirements.gre) {
+        reasons.push("✓ GRE requirement met");
+      } else {
+        reasons.push("✗ GRE below requirement");
+      }
+    }
+
+    return reasons;
+  };
+
+  const getAdmissionRecommendation = (chance) => {
+    if (chance >= 90) {
+      return "Strong candidate. Apply immediately.";
+    }
+    if (chance >= 75) {
+      return "Competitive profile. Apply with a strong SOP.";
+    }
+    return "Improve profile before applying.";
+  };
+
+  const getAffordability = (university) => {
+    if (!budget) return "Unknown";
+    const limit = parseBudgetValue(budget);
+    if (limit === null) return "Unknown";
+    if (university.tuition <= limit) {
+      return "Affordable";
+    }
+    return "Over Budget";
+  };
+
+  const getRecommendedProgram = (university) => {
+    const program = getRecommendedProgramDetails(university);
+    return program ? program.course : "No matching program";
+  };
+
+  const getCountryScore = (country) => {
+    const countryUniversities = universities.filter((u) => u.country === country);
+    if (countryUniversities.length === 0) return 0;
+    const totalScore = countryUniversities.reduce((sum, u) => sum + getMatchScore(u), 0);
+    return Math.round(totalScore / countryUniversities.length);
+  };
+
+  const getCountryCategory = (country) => {
+    const score = getCountryScore(country);
+    if (score >= 85) return "SAFE";
+    if (score >= 65) return "TARGET";
+    return "REACH";
+  };
+
+  const uniqueCountries = [...new Set(universities.map((u) => u.country))];
+
+  const getProfileCompleteness = () => {
+    const profileFields = [
+      studyCountry,
+      degreeLevel,
+      gpaScore,
+      targetCareer,
+      languageExam,
+      preferredIntake,
+      budget,
+      citizenshipStatus,
+      currentEducation,
+      workExperienceYears,
+      leadershipExperience,
+      researchProjects,
+      publicationCount,
+    ];
+    const filledFields = profileFields.filter((value) => String(value).trim() !== "").length;
+    const readinessCount = Object.values(documentReadiness).filter(Boolean).length;
+    const totalFields = profileFields.length + Object.keys(documentReadiness).length;
+    return totalFields > 0 ? Math.round(((filledFields + readinessCount) / totalFields) * 100) : 0;
+  };
+
+  const getScholarshipMatchScore = (scholarship) => {
+    let score = 0;
+    const gpa = parseFloat(gpaScore || 0);
+    const ielts = parseFloat(examScores[languageExam] || 0);
+
+    if (gpa >= scholarship.min_gpa_10) {
+      score += 50;
+    } else {
+      score += Math.max(0, (gpa / scholarship.min_gpa_10) * 50);
+    }
+
+    if (ielts >= scholarship.min_ielts) {
+      score += 30;
+    } else {
+      score += Math.max(0, (ielts / scholarship.min_ielts) * 30);
+    }
+
+    if (scholarship.degree_levels.includes(degreeLevel)) {
+      score += 20;
+    }
+
+    return Math.round(score);
+  };
+
+  const getScholarshipCategory = (score) => {
+    if (score >= 90) return "HIGH";
+    if (score >= 75) return "MEDIUM";
+    return "LOW";
+  };
+
+  const getScholarshipAnalysis = (scholarship) => {
+    const analysis = [];
+    const gpa = parseFloat(gpaScore || 0);
+    const ielts = parseFloat(examScores[languageExam] || 0);
+
+    if (gpa >= scholarship.min_gpa_10) {
+      analysis.push("✓ GPA requirement met");
+    } else {
+      analysis.push("✗ GPA below requirement");
+    }
+
+    if (ielts >= scholarship.min_ielts) {
+      analysis.push("✓ Language requirement met");
+    } else {
+      analysis.push("✗ Language score below requirement");
+    }
+
+    return analysis;
+  };
+
+  const getScholarshipRecommendation = (score) => {
+    if (score >= 90) return "Strong candidate. Apply.";
+    if (score >= 75) return "Competitive. Worth applying.";
+    return "Improve profile before applying.";
+  };
+
+  const matchingScholarships = scholarships
+    .filter((scholarship) => scholarship.country === studyCountry)
+    .filter((scholarship) => scholarship.degree_levels.includes(degreeLevel))
+    .sort((a, b) => getScholarshipMatchScore(b) - getScholarshipMatchScore(a));
+
+  const getScholarshipChanceScore = (university) => {
+    if (!university) return 0;
+    const scholarshipFlags = Object.values(university.scholarships || {}).filter(Boolean).length;
+    const scholarshipStrength = scholarshipFlags / 5;
+    const budgetFactor = (() => {
+      const limit = parseBudgetValue(budget);
+      if (limit === null || limit === 0) return 0.8;
+      const totalAnnualCost = Number(university.tuition || 0) + Number(university.living_cost || 0);
+      return Math.min(1, totalAnnualCost <= limit ? 1 : limit / totalAnnualCost);
+    })();
+    const chance = Math.round(Math.min(100, scholarshipStrength * 70 + budgetFactor * 30));
+    const eligibility = getEligibilityResult(university);
+    return eligibility.eligible ? chance : Math.max(chance - 20, 0);
+  };
+
   const getEligibilityResult = (university) => {
     const gpa = parseFloat(gpaScore || 0);
     const ielts = parseFloat(examScores?.["IELTS"] || 0);
+    const toefl = parseFloat(examScores?.["TOEFL"] || 0);
     const gre = parseFloat(examScores?.["GRE"] || 0);
+    const gmat = parseFloat(examScores?.["GMAT"] || 0);
+    const sat = parseFloat(examScores?.["SAT"] || 0);
+    const act = parseFloat(examScores?.["ACT"] || 0);
     const jlpt = examScores?.["JLPT"] || "";
 
-    const requirements = university.requirements || {};
+    const program = getRecommendedProgramDetails(university);
+    const requirements = program?.requirements || {};
+    const courseName = program?.course || "this program";
     const requiredGpa = gpaScale === "10" ? requirements.gpa10 : requirements.gpa4;
 
     if (requiredGpa && gpa < requiredGpa) {
-      return { eligible: false, reason: `Minimum GPA required: ${requiredGpa}` };
+      return { eligible: false, reason: `${courseName} requires a minimum GPA of ${requiredGpa}.` };
     }
-    if (requirements.ielts && ielts < requirements.ielts) {
-      return { eligible: false, reason: `Minimum IELTS required: ${requirements.ielts}` };
+
+    const supportedLanguageExams = [];
+    if (requirements.ielts) supportedLanguageExams.push("IELTS");
+    if (requirements.toefl) supportedLanguageExams.push("TOEFL");
+
+    if (supportedLanguageExams.length) {
+      if (!languageExam || !supportedLanguageExams.includes(languageExam)) {
+        return {
+          eligible: false,
+          reason: `${courseName} requires ${supportedLanguageExams.join(" or ")} for language proficiency.`,
+        };
+      }
+      if (languageExam === "IELTS" && requirements.ielts && ielts < requirements.ielts) {
+        return { eligible: false, reason: `${courseName} requires IELTS ${requirements.ielts} or higher.` };
+      }
+      if (languageExam === "TOEFL" && requirements.toefl && toefl < requirements.toefl) {
+        return { eligible: false, reason: `${courseName} requires TOEFL ${requirements.toefl} or higher.` };
+      }
     }
-    if (requirements.gre && gre < requirements.gre) {
-      return { eligible: false, reason: `Minimum GRE required: ${requirements.gre}` };
+
+    const requiresBachelorExam = degreeLevel === "Bachelor's" && (requirements.sat || requirements.act);
+    if (requiresBachelorExam) {
+      if (!admissionExam) {
+        return { eligible: false, reason: `${courseName} requires SAT or ACT. Select one to continue.` };
+      }
+      if (admissionExam === "SAT") {
+        if (requirements.sat && sat < requirements.sat) {
+          return { eligible: false, reason: `${courseName} requires SAT ${requirements.sat} or higher.` };
+        }
+        if (requirements.act && !requirements.sat) {
+          return { eligible: false, reason: `${courseName} requires ACT rather than SAT.` };
+        }
+      }
+      if (admissionExam === "ACT") {
+        if (requirements.act && act < requirements.act) {
+          return { eligible: false, reason: `${courseName} requires ACT ${requirements.act} or higher.` };
+        }
+        if (requirements.sat && !requirements.act) {
+          return { eligible: false, reason: `${courseName} requires SAT rather than ACT.` };
+        }
+      }
     }
-    if (requirements.jlpt && jlpt !== requirements.jlpt) {
-      return { eligible: false, reason: `JLPT ${requirements.jlpt} required` };
+
+    const requiresMasterExam = degreeLevel === "Master's" && (requirements.gre || requirements.gmat);
+    if (requiresMasterExam) {
+      if (!admissionExam) {
+        return { eligible: false, reason: `${courseName} requires GRE or GMAT. Select one to continue.` };
+      }
+      if (admissionExam === "GRE") {
+        if (requirements.gre && gre < requirements.gre) {
+          return { eligible: false, reason: `${courseName} requires GRE ${requirements.gre} or higher.` };
+        }
+        if (requirements.gmat && !requirements.gre) {
+          return { eligible: false, reason: `${courseName} requires GMAT rather than GRE.` };
+        }
+      }
+      if (admissionExam === "GMAT") {
+        if (requirements.gmat && gmat < requirements.gmat) {
+          return { eligible: false, reason: `${courseName} requires GMAT ${requirements.gmat} or higher.` };
+        }
+        if (requirements.gre && !requirements.gmat) {
+          return { eligible: false, reason: `${courseName} requires GRE rather than GMAT.` };
+        }
+      }
     }
-    return { eligible: true, reason: "Eligible" };
+
+    if (degreeLevel === "PhD") {
+      if (requirements.gre && gre < requirements.gre) {
+        return { eligible: false, reason: `${courseName} requires GRE ${requirements.gre} or higher.` };
+      }
+      if (requirements.research_projects && parseFloat(researchProjects || 0) < requirements.research_projects) {
+        return { eligible: false, reason: `${courseName} expects at least ${requirements.research_projects} research project(s).` };
+      }
+      if (requirements.publications && parseFloat(publicationCount || 0) < requirements.publications) {
+        return { eligible: false, reason: `${courseName} expects at least ${requirements.publications} publication(s).` };
+      }
+      if (requirements.faculty_match && !facultyMatch) {
+        return { eligible: false, reason: `${courseName} requires a faculty match.` };
+      }
+    }
+
+    if (requirements.jlpt && !jlptSatisfiesRequirement(jlpt, requirements.jlpt)) {
+      return { eligible: false, reason: `${courseName} requires JLPT ${requirements.jlpt} or higher.` };
+    }
+
+    return { eligible: true, reason: `Eligible for ${courseName}.` };
   };
 
-  // Guarded Role & Skill Sync
+  // Restore role & skills from in-memory session on first mount
   useEffect(() => {
-    if (!isHydrated) return;
-    if (selectedRole) {
-      localStorage.setItem("pathloom_role", selectedRole);
-    } else {
-      localStorage.removeItem("pathloom_role");
-    }
-  }, [selectedRole, isHydrated]);
-
-  useEffect(() => {
-    if (!isHydrated) return;
-    localStorage.setItem("pathloom_skills", JSON.stringify(selectedSkills));
-  }, [selectedSkills, isHydrated]);
-
-  // Sync study parameters and profile tracks across reboots
-  useEffect(() => {
-    if (!isHydrated) return;
-    localStorage.setItem("pathloom_country", studyCountry);
-    localStorage.setItem("pathloom_degree", studyDegree);
-    
-    localStorage.setItem("pathloom_degree_level", degreeLevel);
-    localStorage.setItem("pathloom_gpa_scale", gpaScale);
-    localStorage.setItem("pathloom_gpa_score", gpaScore);
-    localStorage.setItem("pathloom_target_career", targetCareer);
-    localStorage.setItem("pathloom_exam_scores", JSON.stringify(examScores));
-  }, [studyCountry, studyDegree, degreeLevel, gpaScale, gpaScore, targetCareer, examScores, isHydrated]);
-
-  // Clear sub-selections when country shifts
-  useEffect(() => {
-    setUniversitySearch("");
-    setSelectedUniversity(null);
-  }, [studyCountry]);
+    setIsHydrated(true);
+  }, []);
 
   // Central Core Startup/Restoration Block
   useEffect(() => {
@@ -499,31 +969,6 @@ function App() {
         if (isMounted) {
           setRoles(rolesData);
           setSkills(skillsData);
-
-          // Restore Academic Targets and Profile Tracks
-          setStudyCountry(localStorage.getItem("pathloom_country") || "");
-          setStudyDegree(localStorage.getItem("pathloom_degree") || "");
-          setDegreeLevel(localStorage.getItem("pathloom_degree_level") || "");
-          setGpaScale(localStorage.getItem("pathloom_gpa_scale") || "10");
-          setGpaScore(localStorage.getItem("pathloom_gpa_score") || "");
-
-          const savedExamScores = localStorage.getItem("pathloom_exam_scores");
-          if (savedExamScores) {
-            setExamScores(JSON.parse(savedExamScores));
-          }
-
-          const savedCareer = localStorage.getItem("pathloom_target_career");
-          if (savedCareer) {
-            setTargetCareer(savedCareer);
-          }
-
-          setSelectedRole(localStorage.getItem("pathloom_role") || "");
-          const savedSkills = localStorage.getItem("pathloom_skills");
-          if (savedSkills) {
-            setSelectedSkills(JSON.parse(savedSkills));
-          }
-
-          setIsHydrated(true);
         }
       } catch (error) {
         console.error(error);
@@ -555,6 +1000,29 @@ function App() {
     };
   }, []);
 
+  // Clear sub-selections when country shifts
+  useEffect(() => {
+    setUniversitySearch("");
+    setSelectedUniversity(null);
+  }, [studyCountry]);
+
+  useEffect(() => {
+    const supportedLanguageExams = getSupportedLanguageExams();
+    if (languageExam && !supportedLanguageExams.includes(languageExam)) {
+      setLanguageExam(supportedLanguageExams[0] || "IELTS");
+    }
+  }, [studyCountry, degreeLevel, targetCareer, selectedUniversity]);
+
+  useEffect(() => {
+    const availableAdmissionExams = getAdmissionExamOptions();
+    if (admissionExam && !availableAdmissionExams.includes(admissionExam)) {
+      setAdmissionExam(availableAdmissionExams[0] || "");
+    }
+    if (degreeLevel === "PhD" && admissionExam !== "GRE") {
+      setAdmissionExam("GRE");
+    }
+  }, [degreeLevel, selectedUniversity, targetCareer]);
+
   /* ---------- Profile Export Utility ---------- */
   const exportProfile = () => {
     const profile = {
@@ -562,10 +1030,23 @@ function App() {
       selected_skills: selectedSkills,
       skill_count: selectedSkills.length,
       study_country: studyCountry,
-      study_degree: studyDegree,
+      study_degree: degreeLevel,
       degree_level: degreeLevel,
       gpa_scale: gpaScale,
       gpa_score: gpaScore,
+      admission_exam: admissionExam,
+      language_exam: languageExam,
+      preferred_intake: preferredIntake,
+      budget,
+      citizenship_status: citizenshipStatus,
+      current_education: currentEducation,
+      work_experience_years: workExperienceYears,
+      leadership_experience: leadershipExperience,
+      research_projects: researchProjects,
+      publication_count: publicationCount,
+      faculty_match: facultyMatch,
+      country_preferences: countryPreferences,
+      document_readiness: documentReadiness,
       exam_scores: examScores,
       target_career: targetCareer,
       exported_at: new Date().toISOString(),
@@ -596,16 +1077,28 @@ function App() {
         if (profile.target_role) setSelectedRole(profile.target_role);
         if (profile.selected_skills) setSelectedSkills(profile.selected_skills);
         if (profile.study_country) setStudyCountry(profile.study_country);
-        if (profile.study_degree) setStudyDegree(profile.study_degree);
-        if (profile.degree_level) setDegreeLevel(profile.degree_level);
+        if (profile.study_degree || profile.degree_level) setDegreeLevel(profile.degree_level || profile.study_degree);
         if (profile.gpa_scale) setGpaScale(profile.gpa_scale);
         if (profile.gpa_score) setGpaScore(profile.gpa_score);
         if (profile.exam_scores) setExamScores(profile.exam_scores);
+        if (profile.admission_exam) setAdmissionExam(profile.admission_exam);
+        if (profile.language_exam) setLanguageExam(profile.language_exam);
+        if (profile.preferred_intake) setPreferredIntake(profile.preferred_intake);
+        if (profile.budget) setBudget(profile.budget);
+        if (profile.citizenship_status) setCitizenshipStatus(profile.citizenship_status);
+        if (profile.current_education) setCurrentEducation(profile.current_education);
+        if (profile.work_experience_years) setWorkExperienceYears(profile.work_experience_years);
+        if (profile.leadership_experience) setLeadershipExperience(profile.leadership_experience);
+        if (profile.research_projects) setResearchProjects(profile.research_projects);
+        if (profile.publication_count) setPublicationCount(profile.publication_count);
+        if (typeof profile.faculty_match === "boolean") setFacultyMatch(profile.faculty_match);
+        if (profile.country_preferences) setCountryPreferences(profile.country_preferences);
+        if (profile.document_readiness) setDocumentReadiness(profile.document_readiness);
         if (profile.target_career) setTargetCareer(profile.target_career);
 
-        alert("Profile imported successfully!");
+        setImportAlert({ type: "success", message: "Profile imported successfully." });
       } catch {
-        alert("Invalid profile file.");
+        setImportAlert({ type: "error", message: "Invalid profile file." });
       }
     };
 
@@ -619,11 +1112,46 @@ function App() {
     );
   };
 
+  const convertGpaScore = (value, fromScale, toScale) => {
+    const numeric = parseFloat(value);
+    if (Number.isNaN(numeric)) return "";
+
+    if (fromScale === toScale) {
+      return String(numeric);
+    }
+
+    let converted = numeric;
+    if (fromScale === "10" && toScale === "4") {
+      converted = (numeric / 10) * 4;
+    }
+    if (fromScale === "4" && toScale === "10") {
+      converted = (numeric / 4) * 10;
+    }
+
+    return String(Math.round(converted * 100) / 100);
+  };
+
+  const handleGpaScaleChange = (newScale) => {
+    setGpaScore((prevScore) => convertGpaScore(prevScore, gpaScale, newScale));
+    setGpaScale(newScale);
+  };
+
   const handleExamScoreChange = (exam, value) => {
     setExamScores((prev) => ({
       ...prev,
       [exam]: value,
     }));
+  };
+
+  const jlptLevelValue = (level) => {
+    const normalized = String(level || "").trim().toUpperCase();
+    const order = { N5: 1, N4: 2, N3: 3, N2: 4, N1: 5 };
+    return order[normalized] || 0;
+  };
+
+  const jlptSatisfiesRequirement = (applicantJlpt, requiredJlpt) => {
+    if (!requiredJlpt) return true;
+    return jlptLevelValue(applicantJlpt) >= jlptLevelValue(requiredJlpt);
   };
 
   const analyzeCareer = async () => {
@@ -663,7 +1191,9 @@ function App() {
       setRecommendError("Add at least one skill before finding alternative roles.");
       return;
     }
+    if (isLoadingRecommendations) return;
 
+    setIsLoadingRecommendations(true);
     try {
       const response = await fetch(
         `${API_BASE}/recommend?skills_input=` + selectedSkills.join(",")
@@ -682,6 +1212,8 @@ function App() {
     } catch (error) {
       console.error(error);
       setRecommendError("Couldn't load alternative roles. Check your connection and try again.");
+    } finally {
+      setIsLoadingRecommendations(false);
     }
   };
 
@@ -705,6 +1237,7 @@ function App() {
       const response = await fetch(
         `${API_BASE}/explain?role_id=${roleId}&skills_input=${selectedSkills.join(",")}`
       );
+      if (!response.ok) throw new Error(`Server returned status code: ${response.status}`);
       const data = await response.json();
       setExplanations((prev) => ({
         ...prev,
@@ -712,6 +1245,7 @@ function App() {
       }));
     } catch (error) {
       console.error(error);
+      setRecommendError((prev) => prev || "Could not load explanation details.");
     }
   };
 
@@ -720,6 +1254,7 @@ function App() {
       const response = await fetch(
         `${API_BASE}/insight?role_id=${roleId}&skills_input=${selectedSkills.join(",")}`
       );
+      if (!response.ok) throw new Error(`Server returned status code: ${response.status}`);
       const data = await response.json();
       setInsights((prev) => ({
         ...prev,
@@ -727,12 +1262,13 @@ function App() {
       }));
     } catch (error) {
       console.error(error);
+      setRecommendError((prev) => prev || "Could not load insight details.");
     }
   };
 
-  const compareTopRoles = async (recommendations) => {
+  const compareTopRoles = async (recommendationsList) => {
     try {
-      const roleIds = recommendations
+      const roleIds = recommendationsList
         .slice(0, 3)
         .map((r) => r.role_id)
         .join(",");
@@ -740,7 +1276,7 @@ function App() {
       const response = await fetch(
         `${API_BASE}/compare?role_ids=${roleIds}&skills_input=${selectedSkills.join(",")}`
       );
-
+      if (!response.ok) throw new Error(`Server returned status code: ${response.status}`);
       const data = await response.json();
       setComparisonData(data);
 
@@ -757,12 +1293,24 @@ function App() {
     setSelectedSkills([]);
     setSkillSearch("");
     setStudyCountry("");
-    setStudyDegree("");
     setTargetCareer("");
     setDegreeLevel("");
     setGpaScale("10");
     setGpaScore("");
-    setExamScores({ IELTS: "", GRE: "", JLPT: "" });
+    setExamScores({ IELTS: "", TOEFL: "", GRE: "", GMAT: "", SAT: "", ACT: "", JLPT: "" });
+    setAdmissionExam("");
+    setLanguageExam("IELTS");
+    setPreferredIntake("");
+    setBudget("");
+    setCitizenshipStatus("");
+    setCurrentEducation("");
+    setWorkExperienceYears("");
+    setLeadershipExperience("");
+    setResearchProjects("");
+    setPublicationCount("");
+    setFacultyMatch(false);
+    setCountryPreferences("");
+    setDocumentReadiness({ sop: false, lor: false, cv: false, passport: false, transcripts: false });
     setUniversitySearch("");
     setSelectedUniversity(null);
     setResult(null);
@@ -775,6 +1323,37 @@ function App() {
     setExplanations({});
     setInsights({});
   };
+
+  const filteredUniversityList = universities
+    .filter(
+      (u) =>
+        u.country === studyCountry &&
+        u.name.toLowerCase().includes(universitySearch.toLowerCase()) &&
+        doesUniversityMatchBudget(u) &&
+        doesUniversityMatchIntake(u)
+    )
+    .sort((a, b) => {
+      if (universitySort === "tuition") {
+        return (a.tuition || 0) - (b.tuition || 0);
+      }
+      if (universitySort === "scholarship") {
+        const aScore = Object.values(a.scholarships || {}).filter(Boolean).length;
+        const bScore = Object.values(b.scholarships || {}).filter(Boolean).length;
+        return bScore - aScore;
+      }
+      if (universitySort === "eligibility") {
+        const aEligibility = getEligibilityResult(a).eligible ? 0 : 1;
+        const bEligibility = getEligibilityResult(b).eligible ? 0 : 1;
+        return aEligibility - bEligibility;
+      }
+      if (universitySort === "match") {
+        return getMatchScore(b) - getMatchScore(a);
+      }
+      if (universitySort === "admission") {
+        return getAdmissionChance(b) - getAdmissionChance(a);
+      }
+      return (a.qs_rank || 0) - (b.qs_rank || 0);
+    });
 
   const filteredSkills = Object.entries(skills).filter(([, skillName]) =>
     skillName.toLowerCase().includes(skillSearch.toLowerCase())
@@ -798,16 +1377,13 @@ function App() {
     ? "online"
     : "connecting";
 
-  const getRecommendedProgram = (university) => {
-    const match = university.programs.find(
-      (program) => program.career === targetCareer
-    );
-    return match ? match.course : "No matching program";
-  };
-
   const connectionLabel =
     connectionStatus === "offline" ? "Server offline" :
     connectionStatus === "connecting" ? "Connecting…" : "Connected";
+
+  const selectedProgram = selectedUniversity ? getRecommendedProgramDetails(selectedUniversity) : null;
+  const selectedMatchScore = selectedUniversity ? getMatchScore(selectedUniversity) : 0;
+  const selectedEligibility = selectedUniversity ? getEligibilityResult(selectedUniversity) : { eligible: false, reason: "No university selected" };
 
   return (
     <div className="pl-root antialiased">
@@ -833,7 +1409,7 @@ function App() {
       </header>
 
       <main className="max-w-7xl mx-auto p-6 lg:p-8 space-y-6">
-        
+
         {/* Journey Mode Selector Card */}
         <div className="pl-panel p-6">
           <h2 className="text-2xl font-bold mb-4">Choose Your Journey</h2>
@@ -864,9 +1440,9 @@ function App() {
               <p className="pl-eyebrow">User Profile</p>
               <h2 className="pl-panel-title mt-1">👤 Personal Profile</h2>
             </div>
-            <div className="pl-status pl-status--online">
+            <div className={`pl-status ${storageStatus === "failed" ? "pl-status--offline" : "pl-status--online"}`}>
               <span className="pl-status-dot"></span>
-              <span>Saved</span>
+              <span>{storageStatus === "failed" ? "Save failed" : storageStatus === "saving" ? "Saving..." : "Saved"}</span>
             </div>
           </div>
           <div className="grid md:grid-cols-4 sm:grid-cols-2 gap-4 mt-5">
@@ -886,7 +1462,7 @@ function App() {
             </div>
             <div className="pl-stat pl-stat--card p-3">
               <span className="pl-stat-label">Degree Goal</span>
-              <strong className="pl-stat-value">{studyDegree || "Not Set"}</strong>
+              <strong className="pl-stat-value">{degreeLevel || "Not Set"}</strong>
             </div>
           </div>
 
@@ -902,8 +1478,32 @@ function App() {
               📂 Import Profile
               <input type="file" accept=".json" className="hidden" onChange={importProfile} />
             </label>
+            {importAlert && (
+              <div className={`pl-alert ${importAlert.type === "error" ? "pl-alert--rust" : "pl-alert--teal"} mt-3 p-4`}>
+                {importAlert.message}
+              </div>
+            )}
           </div>
         </div>
+
+        {/* Day 19 Dashboard Summary Card Component */}
+        {mode === "study" && (
+          <div className="pl-panel p-6">
+            <h2 className="text-xl font-bold mb-4">Profile Summary</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-4 bg-slate-50 rounded-lg border">
+                <p className="text-sm font-medium text-slate-500">Profile Completeness</p>
+                <p className="text-2xl font-bold text-slate-800 mt-1">{getProfileCompleteness()}%</p>
+              </div>
+              <div className="p-4 bg-slate-50 rounded-lg border">
+                <p className="text-sm font-medium text-slate-500">Scholarship Potential Strength</p>
+                <p className="text-2xl font-bold text-indigo-600 mt-1">
+                  {selectedUniversity ? getScholarshipChanceScore(selectedUniversity) : 0}%
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {loadError && (
           <div className="pl-alert pl-alert--rust p-4 flex items-start gap-3">
@@ -1032,8 +1632,13 @@ function App() {
                     </button>
                   </div>
 
-                  <button onClick={getRecommendations} disabled={isLoading} className="pl-btn pl-btn--outline w-full px-5 py-3.5">
-                    Find alternative roles
+                  <button
+                    onClick={getRecommendations}
+                    disabled={isLoadingRecommendations}
+                    aria-busy={isLoadingRecommendations}
+                    className="pl-btn pl-btn--outline w-full px-5 py-3.5"
+                  >
+                    {isLoadingRecommendations ? "Loading alternatives…" : "Find alternative roles"}
                   </button>
 
                   {recommendError && <div className="pl-alert pl-alert--rust mt-1 p-3.5">{recommendError}</div>}
@@ -1278,16 +1883,22 @@ function App() {
         {mode === "study" && (
           <div className="pl-panel p-6">
             <h2 className="text-3xl font-bold mb-4">🎓 Study Planner</h2>
-            <p className="text-slate-600 mb-6">Plan your global education journey based on your unique profile metrics.</p>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-6">
+              <p className="text-slate-600">Plan your global education journey based on your unique profile metrics.</p>
+              <div className="text-sm text-slate-500">
+                Profile completeness: {getProfileCompleteness()}%
+              </div>
+            </div>
 
             {/* Academic Profile Form Element */}
             <div className="pl-panel p-6 mt-6">
               <h2 className="text-2xl font-bold mb-6">🎓 Academic Profile</h2>
-              <div className="grid md:grid-cols-3 gap-4">
+              <div className="grid md:grid-cols-4 gap-4">
                 {/* Degree Selection Component */}
                 <div>
-                  <label className="block mb-2 font-medium">Degree Level</label>
+                  <label htmlFor="degree-level-select" className="block mb-2 font-medium">Degree Level</label>
                   <select
+                    id="degree-level-select"
                     value={degreeLevel}
                     onChange={(e) => setDegreeLevel(e.target.value)}
                     className="w-full p-3 border rounded-lg"
@@ -1301,10 +1912,11 @@ function App() {
 
                 {/* GPA Scale Control Selection Component */}
                 <div>
-                  <label className="block mb-2 font-medium">GPA Scale</label>
+                  <label htmlFor="gpa-scale-select" className="block mb-2 font-medium">GPA Scale</label>
                   <select
+                    id="gpa-scale-select"
                     value={gpaScale}
-                    onChange={(e) => setGpaScale(e.target.value)}
+                    onChange={(e) => handleGpaScaleChange(e.target.value)}
                     className="w-full p-3 border rounded-lg"
                   >
                     <option value="4">4.0 Scale</option>
@@ -1314,10 +1926,13 @@ function App() {
 
                 {/* GPA Continuous Input Numeric Selector field */}
                 <div>
-                  <label className="block mb-2 font-medium">GPA Score</label>
+                  <label htmlFor="gpa-score-input" className="block mb-2 font-medium">GPA Score</label>
                   <input
+                    id="gpa-score-input"
                     type="number"
                     step="0.01"
+                    min="0"
+                    max={gpaScale === "10" ? "10" : "4"}
                     value={gpaScore}
                     onChange={(e) => setGpaScore(e.target.value)}
                     placeholder="Enter GPA"
@@ -1329,57 +1944,156 @@ function App() {
               {/* Standardized Exam Scores Inputs Component */}
               <div className="mt-6 border-t pt-6">
                 <h3 className="text-lg font-semibold mb-4">✍️ Standardized Exam Scores</h3>
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block mb-2 text-sm font-medium">IELTS Band Score</label>
-                    <input
-                      type="number"
-                      step="0.5"
-                      min="0"
-                      max="9"
-                      value={examScores.IELTS}
-                      onChange={(e) => handleExamScoreChange("IELTS", e.target.value)}
-                      placeholder="e.g. 7.5"
-                      className="w-full p-3 border rounded-lg pl-mono"
-                    />
+
+                <div className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block mb-2 text-sm font-medium">Admission Test</label>
+                      <div className="flex flex-wrap gap-3">
+                        {degreeLevel === "Bachelor's" && ["SAT", "ACT"].map((exam) => (
+                          <ExamOptionBox
+                            key={exam}
+                            label={exam}
+                            value={exam}
+                            selected={admissionExam === exam}
+                            onSelect={setAdmissionExam}
+                          />
+                        ))}
+
+                        {degreeLevel === "Master's" && ["GRE", "GMAT"].map((exam) => (
+                          <ExamOptionBox
+                            key={exam}
+                            label={exam}
+                            value={exam}
+                            selected={admissionExam === exam}
+                            onSelect={setAdmissionExam}
+                          />
+                        ))}
+
+                        {degreeLevel === "PhD" && (
+                          <ExamOptionBox
+                            label="GRE"
+                            value="GRE"
+                            selected={true}
+                            onSelect={() => {}}
+                            disabled={true}
+                          />
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="language-exam-select" className="block mb-2 text-sm font-medium">Language Exam</label>
+                      <select
+                        id="language-exam-select"
+                        value={languageExam}
+                        onChange={(e) => setLanguageExam(e.target.value)}
+                        className="w-full p-3 border rounded-lg"
+                      >
+                        {getSupportedLanguageExams().map((exam) => (
+                          <option key={exam} value={exam}>{exam}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block mb-2 text-sm font-medium">GRE Score</label>
-                    <input
-                      type="number"
-                      min="260"
-                      max="340"
-                      value={examScores.GRE}
-                      onChange={(e) => handleExamScoreChange("GRE", e.target.value)}
-                      placeholder="e.g. 320"
-                      className="w-full p-3 border rounded-lg pl-mono"
-                    />
+                  <p className="text-sm text-slate-500 mt-2">{getAdmissionExamHelperText()}</p>
+
+                  <div className="grid md:grid-cols-3 gap-4">
+                    {degreeLevel && admissionExam && degreeLevel === "Bachelor's" && admissionExam === "SAT" && (
+                      <div>
+                        <label className="block mb-2 text-sm font-medium">SAT Score</label>
+                        <input
+                          type="number"
+                          min="400"
+                          max="1600"
+                          value={examScores.SAT}
+                          onChange={(e) => handleExamScoreChange("SAT", e.target.value)}
+                          placeholder="e.g. 1400"
+                          className="w-full p-3 border rounded-lg pl-mono"
+                        />
+                      </div>
+                    )}
+                    {degreeLevel && admissionExam && degreeLevel === "Bachelor's" && admissionExam === "ACT" && (
+                      <div>
+                        <label className="block mb-2 text-sm font-medium">ACT Score</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="36"
+                          value={examScores.ACT}
+                          onChange={(e) => handleExamScoreChange("ACT", e.target.value)}
+                          placeholder="e.g. 33"
+                          className="w-full p-3 border rounded-lg pl-mono"
+                        />
+                      </div>
+                    )}
+                    {degreeLevel && admissionExam && degreeLevel === "Master's" && admissionExam === "GRE" && (
+                      <div>
+                        <label className="block mb-2 text-sm font-medium">GRE Score</label>
+                        <input
+                          type="number"
+                          min="260"
+                          max="340"
+                          value={examScores.GRE}
+                          onChange={(e) => handleExamScoreChange("GRE", e.target.value)}
+                          placeholder="e.g. 320"
+                          className="w-full p-3 border rounded-lg pl-mono"
+                        />
+                      </div>
+                    )}
+                    {degreeLevel && admissionExam && degreeLevel === "Master's" && admissionExam === "GMAT" && (
+                      <div>
+                        <label className="block mb-2 text-sm font-medium">GMAT Score</label>
+                        <input
+                          type="number"
+                          min="200"
+                          max="800"
+                          value={examScores.GMAT}
+                          onChange={(e) => handleExamScoreChange("GMAT", e.target.value)}
+                          placeholder="e.g. 720"
+                          className="w-full p-3 border rounded-lg pl-mono"
+                        />
+                      </div>
+                    )}
+                    {degreeLevel === "PhD" && (
+                      <div>
+                        <label className="block mb-2 text-sm font-medium">GRE Score</label>
+                        <input
+                          type="number"
+                          min="260"
+                          max="340"
+                          value={examScores.GRE}
+                          onChange={(e) => handleExamScoreChange("GRE", e.target.value)}
+                          placeholder="e.g. 325"
+                          className="w-full p-3 border rounded-lg pl-mono"
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <label className="block mb-2 text-sm font-medium">{languageExam} Score</label>
+                      <input
+                        type="number"
+                        step="0.5"
+                        min="0"
+                        value={examScores[languageExam]}
+                        onChange={(e) => handleExamScoreChange(languageExam, e.target.value)}
+                        placeholder={languageExam === "IELTS" ? "e.g. 7.5" : "e.g. 100"}
+                        className="w-full p-3 border rounded-lg pl-mono"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block mb-2 text-sm font-medium">JLPT Level</label>
-                    <select
-                      value={examScores.JLPT}
-                      onChange={(e) => handleExamScoreChange("JLPT", e.target.value)}
-                      className="w-full p-3 border rounded-lg pl-mono"
-                    >
-                      <option value="">Select Level</option>
-                      <option value="N1">N1</option>
-                      <option value="N2">N2</option>
-                      <option value="N3">N3</option>
-                      <option value="N4">N4</option>
-                      <option value="N5">N5</option>
-                    </select>
-                  </div>
+
                 </div>
               </div>
             </div>
 
             {/* Global Geographic and Academic Pathway Destination Track Selectors */}
             <div className="mb-6 mt-6">
-              <label className="block mb-2 font-medium">
+              <label htmlFor="target-career-select" className="block mb-2 font-medium">
                 Target Career
               </label>
               <select
+                id="target-career-select"
                 value={targetCareer}
                 onChange={(e) => setTargetCareer(e.target.value)}
                 className="w-full p-3 border rounded-lg"
@@ -1393,56 +2107,161 @@ function App() {
               </select>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4 mt-6">
-              <div>
-                <label className="block mb-2 font-medium">Target Country</label>
-                <select 
-                  className="w-full p-3 border rounded-lg"
-                  value={studyCountry}
-                  onChange={(e) => setStudyCountry(e.target.value)}
-                >
-                  <option value="">Select Country</option>
-                  {countries.map((country) => (
-                    <option key={country.id} value={country.name}>
-                      {country.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            <div className="mt-6">
+              <label htmlFor="study-country-select" className="block mb-2 font-medium">Target Country</label>
+              <select
+                id="study-country-select"
+                className="w-full p-3 border rounded-lg"
+                value={studyCountry}
+                onChange={(e) => setStudyCountry(e.target.value)}
+              >
+                <option value="">Select Country</option>
+                {countries.map((country) => (
+                  <option key={country.id} value={country.name}>
+                    {country.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
+            <div className="grid md:grid-cols-3 gap-4 mt-6">
               <div>
-                <label className="block mb-2 font-medium">Degree Level Goal</label>
-                <select 
+                <label htmlFor="preferred-intake-input" className="block mb-2 font-medium">Preferred Intake</label>
+                <input
+                  id="preferred-intake-input"
+                  value={preferredIntake}
+                  onChange={(e) => setPreferredIntake(e.target.value)}
                   className="w-full p-3 border rounded-lg"
-                  value={studyDegree}
-                  onChange={(e) => setStudyDegree(e.target.value)}
+                  placeholder="e.g. Fall 2027"
+                />
+              </div>
+              <div>
+                <label htmlFor="budget-input" className="block mb-2 font-medium">Budget</label>
+                <input
+                  id="budget-input"
+                  value={budget}
+                  onChange={(e) => setBudget(e.target.value)}
+                  className="w-full p-3 border rounded-lg"
+                  placeholder="e.g. 20000"
+                />
+              </div>
+              <div>
+                <label htmlFor="citizenship-status-select" className="block mb-2 font-medium">Citizenship Status</label>
+                <select
+                  id="citizenship-status-select"
+                  value={citizenshipStatus}
+                  onChange={(e) => setCitizenshipStatus(e.target.value)}
+                  className="w-full p-3 border rounded-lg"
                 >
-                  <option value="">Select Degree</option>
-                  <option value="Bachelor's">Bachelor's</option>
-                  <option value="Master's">Master's</option>
-                  <option value="PhD">PhD</option>
+                  <option value="">Select Status</option>
+                  <option value="International">International</option>
+                  <option value="Domestic">Domestic</option>
+                  <option value="Permanent Resident">Permanent Resident</option>
                 </select>
               </div>
             </div>
 
-            {/* Dynamic Country Intelligence Analytics Profile Overlay Card */}
-            {studyCountry && (
-              <div className="mt-6 bg-white rounded-xl shadow p-5 border border-slate-100">
-                <h3 className="text-xl font-bold mb-4">🌍 Country Intelligence</h3>
-                {countries
-                  .filter(c => c.name === studyCountry)
-                  .map(country => (
-                    <div key={country.id} className="space-y-2 font-medium text-slate-700">
-                      <p>💰 Tuition: {country.tuition}</p>
-                      <p>🛂 Visa Difficulty: {country.visa_difficulty}</p>
-                      <p>🏡 PR Score: {country.pr_score}/10</p>
-                      <p>💼 Work Rights: {country.work_rights}</p>
-                      <p>🎓 Scholarships: {country.scholarships}</p>
-                    </div>
-                  ))
-                }
+            <div className="grid md:grid-cols-3 gap-4 mt-6">
+              <div>
+                <label htmlFor="current-education-input" className="block mb-2 font-medium">Current Education</label>
+                <input
+                  id="current-education-input"
+                  value={currentEducation}
+                  onChange={(e) => setCurrentEducation(e.target.value)}
+                  className="w-full p-3 border rounded-lg"
+                  placeholder="e.g. High school diploma"
+                />
+              </div>
+              {(degreeLevel === "Master's" || degreeLevel === "PhD") && (
+                <div>
+                  <label htmlFor="work-experience-input" className="block mb-2 font-medium">Work Experience</label>
+                  <input
+                    id="work-experience-input"
+                    type="number"
+                    min="0"
+                    value={workExperienceYears}
+                    onChange={(e) => setWorkExperienceYears(e.target.value)}
+                    className="w-full p-3 border rounded-lg"
+                    placeholder="Years of experience"
+                  />
+                </div>
+              )}
+              <div>
+                <label htmlFor="leadership-experience-input" className="block mb-2 font-medium">Leadership Experience</label>
+                <input
+                  id="leadership-experience-input"
+                  value={leadershipExperience}
+                  onChange={(e) => setLeadershipExperience(e.target.value)}
+                  className="w-full p-3 border rounded-lg"
+                  placeholder="e.g. Team lead, club president"
+                />
+              </div>
+            </div>
+
+            {(degreeLevel === "PhD") && (
+              <div className="grid md:grid-cols-3 gap-4 mt-6">
+                <div>
+                  <label htmlFor="research-projects-input" className="block mb-2 font-medium">Research Projects</label>
+                  <input
+                    id="research-projects-input"
+                    type="number"
+                    min="0"
+                    value={researchProjects}
+                    onChange={(e) => setResearchProjects(e.target.value)}
+                    className="w-full p-3 border rounded-lg"
+                    placeholder="Number of projects"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="publication-count-input" className="block mb-2 font-medium">Publications</label>
+                  <input
+                    id="publication-count-input"
+                    type="number"
+                    min="0"
+                    value={publicationCount}
+                    onChange={(e) => setPublicationCount(e.target.value)}
+                    className="w-full p-3 border rounded-lg"
+                    placeholder="Number of publications"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="faculty-match-select" className="block mb-2 font-medium">Faculty Match</label>
+                  <select
+                    id="faculty-match-select"
+                    value={facultyMatch ? "yes" : "no"}
+                    onChange={(e) => setFacultyMatch(e.target.value === "yes")}
+                    className="w-full p-3 border rounded-lg"
+                  >
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                  </select>
+                </div>
               </div>
             )}
+
+            <div className="grid md:grid-cols-2 gap-4 mt-6">
+              <div>
+                <label className="block mb-2 font-medium">Document Readiness</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {Object.entries(documentReadiness).map(([doc, ready]) => (
+                    <label key={doc} className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={ready}
+                        onChange={() =>
+                          setDocumentReadiness((prev) => ({
+                            ...prev,
+                            [doc]: !prev[doc],
+                          }))
+                        }
+                        className="h-4 w-4"
+                      />
+                      {doc.toUpperCase()}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
 
             {targetCareer && studyCountry && (
               <div className="pl-panel p-6 mt-6">
@@ -1450,70 +2269,219 @@ function App() {
                   🎯 Career-Aligned Programs
                 </h2>
 
-                {/* Step 2: Live University Matching Engine Text Search Field Input Component */}
-                <input
-                  type="text"
-                  placeholder="Search universities..."
-                  value={universitySearch}
-                  onChange={(e) => setUniversitySearch(e.target.value)}
-                  className="w-full p-3 border rounded-lg mb-6"
-                />
+                <div className="grid gap-4 md:grid-cols-[1fr_auto] mb-6">
+                  <input
+                    type="text"
+                    placeholder="Search universities..."
+                    value={universitySearch}
+                    onChange={(e) => setUniversitySearch(e.target.value)}
+                    className="w-full p-3 border rounded-lg"
+                  />
+                  <div>
+                    <label htmlFor="university-sort-select" className="block mb-2 text-sm font-medium">Sort universities</label>
+                    <select
+                      id="university-sort-select"
+                      value={universitySort}
+                      onChange={(e) => setUniversitySort(e.target.value)}
+                      className="w-full p-3 border rounded-lg"
+                    >
+                      <option value="qs">Best QS rank</option>
+                      <option value="tuition">Lowest cost</option>
+                      <option value="scholarship">Scholarship strength</option>
+                      <option value="eligibility">Admission fit</option>
+                      <option value="match">Match Score</option>
+                      <option value="admission">Admission Chance</option>
+                    </select>
+                  </div>
+                </div>
 
-                {/* Step 3: Combined Geographic Filter & Text Input Search Regex Matching Engine */}
-                {universities
-                  .filter(
-                    (u) =>
-                      u.country === studyCountry &&
-                      u.name.toLowerCase().includes(universitySearch.toLowerCase())
-                  )
-                  .map((u) => {
+                {filteredUniversityList.length > 0 ? (
+                  filteredUniversityList.map((u) => {
                     const eligibility = getEligibilityResult(u);
+                    const scholarshipChance = getScholarshipChanceScore(u);
+                    const admissionChance = getAdmissionChance(u);
+                    const admissionTier = getAdmissionTier(admissionChance);
 
                     return (
-                      <div 
-                        key={u.id} 
+                      <button
+                        key={u.id}
+                        type="button"
                         onClick={() => setSelectedUniversity(u)}
-                        className={`border rounded-lg p-4 mb-4 cursor-pointer transition-colors ${
-                          selectedUniversity?.id === u.id 
-                            ? "border-indigo-600 bg-indigo-50/40" 
+                        className={`w-full text-left border rounded-lg p-4 mb-4 transition-colors ${
+                          selectedUniversity?.id === u.id
+                            ? "border-indigo-600 bg-indigo-50/40"
                             : "hover:bg-slate-50 border-slate-200"
                         }`}
                       >
-                        <h3 className="font-bold">{u.name}</h3>
-                        <p className={`font-bold ${eligibility.eligible ? "text-green-600" : "text-red-600"}`}>
-                          {eligibility.eligible ? "✅ Eligible" : "❌ Not Eligible"}
-                        </p>
-                        <p className="text-sm text-slate-600">{eligibility.reason}</p>
-                        <p>QS Rank: {u.qs_rank}</p>
-                        <p>Recommended Course: {getRecommendedProgram(u)}</p>
-                      </div>
+                        <h3 className="font-bold text-lg">{u.name}</h3>
+                        <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
+                          <p className="font-medium text-slate-700">
+                            Admission Chance: <span className="font-bold text-indigo-600">{admissionChance}%</span>
+                          </p>
+                          <p className="font-medium text-slate-700">
+                            Tier: <span className={`font-bold ${admissionTier === "SAFE" ? "text-green-600" : admissionTier === "TARGET" ? "text-yellow-600" : "text-red-600"}`}>{admissionTier}</span>
+                          </p>
+                          <p className="text-slate-600">Affordability: <span className="font-semibold text-slate-800">{getAffordability(u)}</span></p>
+                          <p className={`font-bold ${eligibility.eligible ? "text-green-600" : "text-red-600"}`}>
+                            {eligibility.eligible ? "✅ Eligible" : "❌ Not Eligible"}
+                          </p>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-2">{eligibility.reason}</p>
+                        <div className="mt-2 text-xs text-slate-600 flex gap-4">
+                          <span>QS Rank: {u.qs_rank}</span>
+                          <span>Scholarship chance: {scholarshipChance}%</span>
+                        </div>
+                        <p className="text-xs font-medium text-indigo-700 mt-1">Recommended Course: {getRecommendedProgram(u)}</p>
+                      </button>
                     );
-                  })}
+                  })
+                ) : (
+                  <p className="text-sm text-slate-600">No universities match your filters.</p>
+                )}
               </div>
             )}
 
             {/* Step 6: Dynamic Selected Institution Deep Data Intelligence Extraction Component Card */}
             {selectedUniversity && (
-              <div className="mt-8 pl-panel p-6">
-                <h2 className="text-2xl font-bold mb-4">
-                  🏫 University Intelligence
+              <div className="mt-8 pl-panel p-6 space-y-4">
+                <h2 className="text-2xl font-bold border-b pb-2">
+                  🏫 University Profile
                 </h2>
-                <div className="space-y-2 font-medium text-slate-700">
-                  <p>Name: {selectedUniversity.name}</p>
-                  <p>Country: {selectedUniversity.country}</p>
-                  <p>QS Rank: {selectedUniversity.qs_rank}</p>
-                  <p>Tuition: ${selectedUniversity.tuition}/year</p>
-                  <p>Scholarships: {selectedUniversity.scholarships ? "Available" : "No"}</p>
-                  <p>Employment Score: {selectedUniversity.employment_score}/10</p>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <p><strong>Name:</strong> {selectedUniversity.name}</p>
+                    <p><strong>Country:</strong> {selectedUniversity.country}</p>
+                    <p><strong>QS Rank:</strong> {selectedUniversity.qs_rank}</p>
+                    <p><strong>Recommended Program:</strong> {getRecommendedProgram(selectedUniversity)}</p>
+                    <p><strong>Tuition:</strong> ${selectedUniversity.tuition}/year</p>
+                    <p><strong>Affordability:</strong> {getAffordability(selectedUniversity)}</p>
+                  </div>
+                  <div>
+                    <p><strong>Match Score:</strong> {selectedMatchScore}%</p>
+                    <p><strong>Scholarship chance:</strong> {getScholarshipChanceScore(selectedUniversity)}%</p>
+                    <p><strong>Eligibility:</strong> {selectedEligibility.eligible ? "✅ Eligible" : "❌ Not Eligible"}</p>
+                    <p className="text-sm text-slate-600"><strong>Reason:</strong> {selectedEligibility.reason}</p>
+                    <p><strong>Employment Score:</strong> {selectedUniversity.employment_score}/10</p>
+                  </div>
                 </div>
+
+                <div className="mt-6 p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-2">
+                  <h3 className="text-lg font-bold text-slate-800 flex items-center gap-1.5">🎯 Admission Analysis</h3>
+                  <div className="space-y-1 bg-white p-3 rounded-lg border text-sm font-medium">
+                    {getAdmissionReasons(selectedUniversity).map((item, index) => (
+                      <p key={index} className={item.startsWith("✓") ? "text-green-700" : "text-red-700"}>
+                        {item}
+                      </p>
+                    ))}
+                  </div>
+                  
+                  <div className="grid sm:grid-cols-3 gap-2 pt-2 text-sm font-semibold">
+                    <p className="p-2 bg-white rounded border">
+                      Admission Chance: <span className="text-indigo-600 font-bold">{getAdmissionChance(selectedUniversity)}%</span>
+                    </p>
+                    <p className="p-2 bg-white rounded border">
+                      Category: <span className="text-indigo-600 font-bold">{getAdmissionTier(getAdmissionChance(selectedUniversity))}</span>
+                    </p>
+                    <p className="p-2 bg-white rounded border sm:col-span-1">
+                      Recommendation: <span className="text-indigo-600 font-bold">{getAdmissionRecommendation(getAdmissionChance(selectedUniversity))}</span>
+                    </p>
+                  </div>
+                </div>
+
+                {selectedProgram && (
+                  <div className="pt-4 border-t text-sm grid md:grid-cols-2 gap-2 text-slate-600">
+                    <p><strong>Minimum GPA:</strong> {gpaScale === "10" ? selectedProgram.requirements.gpa10 : selectedProgram.requirements.gpa4}</p>
+                    <p><strong>Minimum IELTS:</strong> {selectedProgram.requirements.ielts || "N/A"}</p>
+                    <p><strong>Minimum TOEFL:</strong> {selectedProgram.requirements.toefl || "N/A"}</p>
+                    <p><strong>Minimum GRE:</strong> {selectedProgram.requirements.gre || "N/A"}</p>
+                    <p><strong>Minimum GMAT:</strong> {selectedProgram.requirements.gmat || "N/A"}</p>
+                    <p><strong>JLPT Requirement:</strong> {selectedProgram.requirements.jlpt || "N/A"}</p>
+                    <p><strong>Program Language Track:</strong> {selectedProgram.language_track || "N/A"}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {targetCareer && studyCountry && (
+              <div className="pl-panel p-6 mt-6">
+                <h2 className="text-2xl font-bold mb-4">
+                  🌍 Country Strategy
+                </h2>
+
+                {uniqueCountries.map((country) => {
+                  const score = getCountryScore(country);
+                  const category = getCountryCategory(country);
+                  const categoryColor =
+                    category === "SAFE"
+                      ? "text-green-600"
+                      : category === "TARGET"
+                      ? "text-yellow-600"
+                      : "text-red-600";
+
+                  return (
+                    <div key={country} className="mb-4 pb-4 border-b last:border-b-0">
+                      <p className="font-bold text-lg">{country}</p>
+                      <p className={`font-bold ${categoryColor}`}>{category}</p>
+                      <p className="text-slate-600">Match Score: {score}%</p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {targetCareer && studyCountry && degreeLevel && (
+              <div className="pl-panel p-6 mt-6">
+                <h2 className="text-2xl font-bold mb-4">
+                  🎓 Scholarship Intelligence
+                </h2>
+
+                {matchingScholarships.length > 0 ? (
+                  matchingScholarships.map((s) => {
+                    const score = getScholarshipMatchScore(s);
+                    const category = getScholarshipCategory(score);
+                    const categoryColor =
+                      category === "HIGH"
+                        ? "text-green-600"
+                        : category === "MEDIUM"
+                        ? "text-yellow-600"
+                        : "text-red-600";
+
+                    return (
+                      <div
+                        key={s.id}
+                        className="border rounded-lg p-4 mb-4 last:mb-0 bg-slate-50"
+                      >
+                        <h3 className="font-bold text-lg">{s.name}</h3>
+                        <p className="text-sm text-slate-600 mb-2">Type: {s.type}</p>
+                        <p className="text-sm text-slate-600 mb-3">Amount: {s.amount}</p>
+
+                        <div className="mb-3 pb-3 border-b">
+                          <p className={`font-bold ${categoryColor}`}>Match: {score}% ({category})</p>
+                        </div>
+
+                        <div className="mb-3 pb-3 border-b">
+                          <p className="text-sm font-semibold mb-2">Analysis:</p>
+                          {getScholarshipAnalysis(s).map((item, index) => (
+                            <p key={index} className="text-sm text-slate-700">{item}</p>
+                          ))}
+                        </div>
+
+                        <p className="text-sm">
+                          <strong>Recommendation:</strong> {getScholarshipRecommendation(score)}
+                        </p>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <p className="text-sm text-slate-600">No scholarships match your profile yet. Try adjusting your degree level or target country.</p>
+                )}
               </div>
             )}
 
             <div className="mt-6 p-4 rounded-lg bg-slate-100">
               <h3 className="font-semibold mb-2">Coming Soon</h3>
               <ul className="list-disc ml-5 text-sm space-y-1 text-slate-600">
-                <li>Scholarship Matching</li>
-                <li>Country Comparison</li>
                 <li>Admission Roadmaps</li>
                 <li>Visa Planning</li>
               </ul>

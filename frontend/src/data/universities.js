@@ -1,123 +1,213 @@
 const universities = [
 
-{
-  id: 1,
-
-  country: "Japan",
-
-  name: "University of Tokyo",
-
-  qs_rank: 32,
-
-  requirements: {
-    gpa10: 8.5,
-    gpa4: 3.4,
-    ielts: 7.0,
-    gre: 320,
-    jlpt: "N2"
+  {
+    id: 1,
+    country: "Japan",
+    city: "Tokyo",
+    name: "University of Tokyo",
+    qs_rank: 32,
+    tuition: 6000,
+    living_cost: 14000,
+    scholarships: {
+      merit: true,
+      need: false,
+      government: false,
+      university: true,
+      research: true,
+    },
+    employment_score: 9.8,
+    employment_rate: 0.92,
+    average_salary: "$48,000",
+    work_rights: "Student visa + part-time",
+    intakes: ["Fall 2027", "Spring 2028"],
+    programs: [
+      {
+        careers: ["Data Scientist", "ML Engineer"],
+        course: "Master of Data Science",
+        level: "Master's",
+        language_track: "english",
+        requirements: {
+          gpa10: 8.5,
+          gpa4: 3.4,
+          ielts: 7.0,
+          toefl: 95,
+          gre: 320,
+        },
+      },
+      {
+        careers: ["AI Engineer", "ML Engineer"],
+        course: "Master of Artificial Intelligence",
+        level: "Master's",
+        language_track: "english",
+        requirements: {
+          gpa10: 8.4,
+          gpa4: 3.35,
+          ielts: 7.0,
+          toefl: 95,
+          gre: 320,
+        },
+      },
+      {
+        careers: ["Business Analyst", "Product Manager"],
+        course: "MBA",
+        level: "Master's",
+        language_track: "english",
+        requirements: {
+          gpa10: 8.2,
+          gpa4: 3.3,
+          ielts: 6.5,
+          toefl: 90,
+          gmat: 650,
+          work_experience_years: 3,
+        },
+      },
+      {
+        careers: ["AI Researcher", "Data Scientist"],
+        course: "PhD in Artificial Intelligence",
+        level: "PhD",
+        language_track: "english",
+        requirements: {
+          gpa10: 9.0,
+          gpa4: 3.7,
+          ielts: 7.5,
+          toefl: 100,
+          gre: 325,
+          research_projects: 2,
+          publications: 1,
+          faculty_match: true,
+        },
+      },
+    ],
   },
 
-  tuition: 6000,
-
-  scholarships: true,
-
-  employment_score: 9.8,
-
-  programs: [
-
-    {
-      career: "Data Scientist",
-      course: "Master of Data Science"
+  {
+    id: 2,
+    country: "Japan",
+    city: "Kyoto",
+    name: "Kyoto University",
+    qs_rank: 50,
+    tuition: 5500,
+    living_cost: 12000,
+    scholarships: {
+      merit: true,
+      need: true,
+      government: false,
+      university: true,
+      research: true,
     },
-
-    {
-      career: "AI Engineer",
-      course: "Master of Artificial Intelligence"
-    },
-
-    {
-      career: "Data Engineer",
-      course: "Master of Big Data Engineering"
-    }
-
-  ]
-},
-
-{
-  id: 2,
-
-  country: "Japan",
-
-  name: "Kyoto University",
-
-  qs_rank: 50,
-
-  requirements: {
-    gpa10: 8.2,
-    gpa4: 3.3,
-    ielts: 6.5,
-    gre: 315,
-    jlpt: "N2"
+    employment_score: 9.5,
+    employment_rate: 0.88,
+    average_salary: "$45,000",
+    work_rights: "Student visa + part-time",
+    intakes: ["Fall 2027", "Spring 2028"],
+    programs: [
+      {
+        careers: ["Data Scientist"],
+        course: "BSc Information Science",
+        level: "Bachelor's",
+        language_track: "english",
+        requirements: {
+          gpa10: 8.4,
+          gpa4: 3.35,
+          ielts: 6.0,
+          toefl: 85,
+          sat: 1380,
+          act: 30,
+        },
+      },
+      {
+        careers: ["AI Engineer"],
+        course: "BSc Computer Science",
+        level: "Bachelor's",
+        language_track: "english",
+        requirements: {
+          gpa10: 8.5,
+          gpa4: 3.4,
+          ielts: 6.5,
+          toefl: 90,
+          sat: 1400,
+          act: 31,
+        },
+      },
+      {
+        careers: ["Data Scientist"],
+        course: "Master of Data Analytics",
+        level: "Master's",
+        language_track: "english",
+        requirements: {
+          gpa10: 8.2,
+          gpa4: 3.3,
+          ielts: 6.5,
+          toefl: 90,
+          gre: 315,
+        },
+      },
+    ],
   },
 
-  tuition: 5500,
-
-  scholarships: true,
-
-  employment_score: 9.5,
-
-  programs: [
-
-    {
-      career: "Data Scientist",
-      course: "Master of Data Analytics"
+  {
+    id: 3,
+    country: "Germany",
+    city: "Munich",
+    name: "Technical University of Munich",
+    qs_rank: 28,
+    tuition: 1000,
+    living_cost: 12000,
+    scholarships: {
+      merit: true,
+      need: true,
+      government: true,
+      university: true,
+      research: false,
     },
-
-    {
-      career: "AI Engineer",
-      course: "Master of AI Systems"
-    }
-
-  ]
-},
-
-{
-  id: 3,
-
-  country: "Germany",
-
-  name: "Technical University of Munich",
-
-  qs_rank: 28,
-
-  requirements: {
-    gpa10: 8.0,
-    gpa4: 3.2,
-    ielts: 6.5,
-    gre: 310,
-    jlpt: null
+    employment_score: 9.4,
+    employment_rate: 0.91,
+    average_salary: "$46,000",
+    work_rights: "EU part-time visa privileges",
+    intakes: ["Fall 2027", "Summer 2028"],
+    programs: [
+      {
+        careers: ["Data Scientist", "AI Engineer"],
+        course: "BSc Computer Science",
+        level: "Bachelor's",
+        language_track: "english",
+        requirements: {
+          gpa10: 8.2,
+          gpa4: 3.3,
+          ielts: 6.5,
+          toefl: 90,
+          sat: 1430,
+          act: 31,
+        },
+      },
+      {
+        careers: ["Data Scientist"],
+        course: "MSc Data Engineering and Analytics",
+        level: "Master's",
+        language_track: "english",
+        requirements: {
+          gpa10: 8.0,
+          gpa4: 3.2,
+          ielts: 6.5,
+          toefl: 90,
+          gre: 310,
+        },
+      },
+      {
+        careers: ["AI Engineer"],
+        course: "MSc Artificial Intelligence",
+        level: "Master's",
+        language_track: "english",
+        requirements: {
+          gpa10: 8.0,
+          gpa4: 3.2,
+          ielts: 6.5,
+          toefl: 90,
+          gre: 310,
+        },
+      },
+    ],
   },
-
-  tuition: 1000,
-
-  scholarships: true,
-
-  employment_score: 9.4,
-
-  programs: [
-
-    {
-      career: "Data Scientist",
-      course: "MSc Data Engineering and Analytics"
-    },
-
-    {
-      career: "AI Engineer",
-      course: "MSc Artificial Intelligence"
-    }
-
-  ]
-}
 
 ];
 

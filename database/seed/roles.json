@@ -1,0 +1,23 @@
+[
+  { "name": "Data Analyst", "domain_name": "AI & Data", "description": "Interprets data and turns it into information which can offer ways to improve a business.", "avg_experience_years": 1, "remote_availability": "High", "growth_outlook": "Rising" },
+  { "name": "Data Engineer", "domain_name": "AI & Data", "description": "Builds systems that collect, manage, and convert raw data into usable information.", "avg_experience_years": 3, "remote_availability": "High", "growth_outlook": "Rising" },
+  { "name": "Machine Learning Engineer", "domain_name": "AI & Data", "description": "Creates programs and algorithms that enable machines to take actions without direction.", "avg_experience_years": 4, "remote_availability": "High", "growth_outlook": "Rising" },
+  { "name": "AI Engineer", "domain_name": "AI & Data", "description": "Builds AI models using machine learning algorithms and deep learning neural networks.", "avg_experience_years": 4, "remote_availability": "High", "growth_outlook": "Rising" },
+  { "name": "Data Scientist", "domain_name": "AI & Data", "description": "Analyzes and interprets complex data to help organizations make decisions.", "avg_experience_years": 3, "remote_availability": "High", "growth_outlook": "Rising" },
+  { "name": "Business Analyst", "domain_name": "AI & Data", "description": "Analyzes business processes and creates solutions.", "avg_experience_years": 2, "remote_availability": "Medium", "growth_outlook": "Stable" },
+  { "name": "ML Ops Engineer", "domain_name": "AI & Data", "description": "Streamlines machine learning lifecycle management.", "avg_experience_years": 5, "remote_availability": "High", "growth_outlook": "Rising" },
+  
+  { "name": "Frontend Developer", "domain_name": "Software Development", "description": "Builds the user-facing portion of websites and web applications.", "avg_experience_years": 2, "remote_availability": "High", "growth_outlook": "Stable" },
+  { "name": "Backend Developer", "domain_name": "Software Development", "description": "Builds the server-side functionality of websites and web applications.", "avg_experience_years": 2, "remote_availability": "High", "growth_outlook": "Stable" },
+  { "name": "Full Stack Developer", "domain_name": "Software Development", "description": "Develops both client and server software.", "avg_experience_years": 3, "remote_availability": "High", "growth_outlook": "Stable" },
+  { "name": "Mobile Developer", "domain_name": "Software Development", "description": "Creates applications for mobile devices.", "avg_experience_years": 2, "remote_availability": "High", "growth_outlook": "Stable" },
+  { "name": "Game Developer", "domain_name": "Software Development", "description": "Creates video games for various platforms.", "avg_experience_years": 3, "remote_availability": "Medium", "growth_outlook": "Stable" },
+  
+  { "name": "DevOps Engineer", "domain_name": "Cloud Computing", "description": "Introduces processes, tools, and methodologies to balance needs throughout the software development life cycle.", "avg_experience_years": 4, "remote_availability": "High", "growth_outlook": "Rising" },
+  { "name": "Cloud Engineer", "domain_name": "Cloud Computing", "description": "Builds and maintains cloud infrastructure.", "avg_experience_years": 3, "remote_availability": "High", "growth_outlook": "Rising" },
+  { "name": "Cloud Architect", "domain_name": "Cloud Computing", "description": "Designs cloud computing strategies and architectures.", "avg_experience_years": 6, "remote_availability": "High", "growth_outlook": "Rising" },
+  
+  { "name": "Cybersecurity Analyst", "domain_name": "Cybersecurity", "description": "Protects company networks and data.", "avg_experience_years": 2, "remote_availability": "Medium", "growth_outlook": "Rising" },
+  { "name": "Security Engineer", "domain_name": "Cybersecurity", "description": "Builds security systems for an organization.", "avg_experience_years": 4, "remote_availability": "Medium", "growth_outlook": "Rising" },
+  { "name": "Penetration Tester", "domain_name": "Cybersecurity", "description": "Simulates cyberattacks to identify vulnerabilities.", "avg_experience_years": 3, "remote_availability": "Medium", "growth_outlook": "Rising" }
+]

@@ -1,0 +1,14 @@
+[
+  { "name": "AI & Data", "icon": "🤖", "description": "Artificial Intelligence, Machine Learning, and Data Science." },
+  { "name": "Software Development", "icon": "💻", "description": "Web, Mobile, Desktop, and Embedded software engineering." },
+  { "name": "Cloud Computing", "icon": "☁️", "description": "Cloud infrastructure, DevOps, and Platform engineering." },
+  { "name": "Cybersecurity", "icon": "🛡️", "description": "Information security, ethical hacking, and risk management." },
+  { "name": "Design", "icon": "🎨", "description": "UI/UX, Graphic Design, Product Design, and User Research." },
+  { "name": "Product", "icon": "📦", "description": "Product Management, Scrum Master, and Agile leadership." },
+  { "name": "Marketing", "icon": "📈", "description": "Digital Marketing, SEO, Content Strategy, and Growth." },
+  { "name": "Sales", "icon": "🤝", "description": "B2B Sales, Account Management, and Customer Success." },
+  { "name": "Finance", "icon": "💰", "description": "Financial Analysis, Accounting, Quant, and Investment Banking." },
+  { "name": "Healthcare", "icon": "⚕️", "description": "Health Informatics, Clinical Data, and Medical Technology." },
+  { "name": "Legal", "icon": "⚖️", "description": "Legal Tech, Compliance, and Intellectual Property." },
+  { "name": "HR", "icon": "👥", "description": "Talent Acquisition, People Analytics, and L&D." }
+]

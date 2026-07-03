@@ -1,6 +1,6 @@
 # 🗺️ Pathloom — 40-Day Development Roadmap
 
-> Last updated: June 27, 2026
+> Last updated: July 3, 2026
 > Start date: June 18, 2026 | Target launch: August 2026
 
 ---
@@ -147,8 +147,8 @@
 | Phase | Days | Status | Completion |
 |-------|------|--------|------------|
 | Phase 1: Foundation | 1–10 | ✅ Complete | 100% |
-| Phase 2: Study Intelligence | 11–20 | 🔄 In Progress | ~70% |
-| Phase 3: AI & Global | 21–30 | 🔲 Not Started | 0% |
+| Phase 2: Study Intelligence | 11–20 | 🔄 In Progress | ~80% |
+| Phase 3: AI & Global | 21–30 | 🔲 Not Started | ~5% (schema ready) |
 | Phase 4: Launch | 31–40 | 🔲 Not Started | 0% |
 
 ---

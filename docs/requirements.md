@@ -1,6 +1,8 @@
 # 📋 Technical Requirements & Stack
 
-> Last updated: June 27, 2026
+> Last updated: July 3, 2026
+>
+> Part of the [Pathloom Documentation Suite](./INDEX.md)
 
 ---
 

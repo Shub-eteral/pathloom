@@ -1,9 +1,11 @@
 # 📊 PATHLOOM — Project Progress Tracker
 
-> **Last Updated:** June 27, 2026
+> **Last Updated:** July 3, 2026
 > **Project Start Date:** June 18, 2026
-> **Development Days Elapsed:** ~10 of 40
+> **Development Days Elapsed:** ~15 of 40
 > **Target Launch:** August 2026
+>
+> See also: [Project Context](./PROJECT_CONTEXT.md) · [Documentation Index](./docs/INDEX.md)
 
 ---
 

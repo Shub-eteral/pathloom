@@ -1,8 +1,8 @@
 # 📊 PATHLOOM — Project Progress Tracker
 
-> **Last Updated:** July 3, 2026
+> **Last Updated:** July 5, 2026
 > **Project Start Date:** June 18, 2026
-> **Development Days Elapsed:** ~15 of 40
+> **Development Days Elapsed:** ~17 of 40
 > **Target Launch:** August 2026
 >
 > See also: [Project Context](./PROJECT_CONTEXT.md) · [Documentation Index](./docs/INDEX.md)
@@ -13,7 +13,7 @@
 
 Pathloom is an AI-powered Career, Study & Global Opportunity Intelligence Platform. The vision is to become a single platform that answers: *"Given who I am today, what is the best path to the future I want?"*
 
-**Current Status:** Early-mid development — Module 1 (Career Intelligence) has a functional MVP and Module 2 (Study Intelligence) is partially built. Module 3 (Global Opportunity Intelligence) and Module 4 (AI Future Planner) are not started.
+**Current Status:** Architecture Refactored — The monolithic frontend is fully decomposed into a routed structure with 11 custom page views. Phase 2 (Study Intelligence) data has been completely expanded (20 universities, 16 scholarships, 10 countries) and the admission chance engine is online.
 
 ---
 
@@ -23,7 +23,7 @@ Pathloom is an AI-powered Career, Study & Global Opportunity Intelligence Platfo
 
 | Layer | Technology | Status |
 |-------|-----------|--------|
-| **Frontend** | React 19 + Vite 8 + Tailwind CSS 4 | ✅ Active |
+| **Frontend** | React 19 + Vite 8 + Router 7 + CSS Variables | ✅ Active |
 | **Backend** | Python + FastAPI | ✅ Active |
 | **Database** | CSV flat files (6 files) | ✅ Active (temporary) |
 | **AI Integration** | Template-based insights (no LLM) | ⚠️ Placeholder |
@@ -74,25 +74,22 @@ pathloom/
 │   ├── roadmap_engine.md # Roadmap engine design doc
 │   ├── scoring.md        # Readiness score algorithm doc
 │   └── vision.md         # Mission & MVP features doc
-├── frontend/             # React + Vite + Tailwind CSS 4
+├── frontend/             # React + Vite + Tailwind CSS 4 + Router 7
 │   ├── src/
-│   │   ├── App.jsx       # Monolithic app component (~2,500 lines)
-│   │   ├── App.css       # Custom CSS (mostly Vite boilerplate)
-│   │   ├── main.jsx      # React entry point
-│   │   ├── index.css     # Tailwind CSS import
+│   │   ├── App.jsx       # Routing layout and top shell (~50 lines)
+│   │   ├── main.jsx      # React entry point with Providers
+│   │   ├── index.css     # Tailwind CSS & Fonts import
+│   │   ├── styles/
+│   │   │   └── design-system.css  # Custom CSS design system tokens
+│   │   ├── data/         # Extended static datasets (countries, universities, scholarships)
+│   │   ├── contexts/     # Shared states (ApiContext, ProfileContext)
+│   │   ├── hooks/        # Custom react hooks (career, study, export logic)
 │   │   ├── components/
-│   │   │   └── ComparisonChart.jsx  # Bar chart component
-│   │   ├── data/
-│   │   │   ├── countries.js     # 5 countries with study data
-│   │   │   ├── scholarships.js  # 3 scholarships (MEXT, JASSO, DAAD)
-│   │   │   └── universities.js  # 3 universities with programs
-│   │   └── assets/
-│   │       ├── hero.png
-│   │       ├── react.svg
-│   │       └── vite.svg
+│   │   │   ├── ui/       # UI primitive components (Gauges, buttons, cards)
+│   │   │   └── layout/   # Layout elements (Header, Sidebar, Footer)
+│   │   └── pages/        # Route page views (Dashboard, Career, Study)
 │   └── public/
-│       ├── favicon.svg
-│       └── icons.svg
+│       └── pathloom-logo.png
 ├── README.md
 ├── .gitignore
 └── PROJECT_PROGRESS.md   # This file
@@ -106,9 +103,9 @@ pathloom/
 
 | Feature | Vision Description | Status | Implementation Details |
 |---------|-------------------|--------|----------------------|
-| **Career Analysis** | User enters skills → readiness score + missing skills + roadmap | ✅ Done | `GET /analyze` endpoint; weighted readiness scoring algorithm |
-| **Career Recommendation** | Best match + alternative career roles | ✅ Done | `GET /recommend` returns top 5 roles sorted by skill overlap |
-| **Career Comparison** | Side-by-side: salary, demand, difficulty, growth | ✅ Done | `GET /compare` endpoint; comparison table + chart in frontend |
+| **Career Analysis** | User enters skills → readiness score + missing skills + roadmap | ✅ Done | Decomposed Page view; client hooks interact with backend engine |
+| **Career Recommendation** | Best match + alternative career roles | ✅ Done | Decomposed recommendations page with AI insights card |
+| **Career Comparison** | Side-by-side: salary, demand, difficulty, growth | ✅ Done | Dynamic compare page with detailed metrics table and chart |
 | **Salary Intelligence** | Country-wise salary data | ⚠️ Partial | Only India LPA ranges in `careerinfo.csv`; no multi-country salary data |
 | **Country Intelligence** | Best countries by demand, immigration, salary | 🔲 Not started | `countries.csv` exists (10 countries) but no country-career intelligence API |
 | **Cost of Living Simulator** | City-level cost breakdown | 🔲 Not started | No data or logic implemented |
@@ -118,7 +115,7 @@ pathloom/
 | **AI Career Coach** | Conversational career guidance | 🔲 Not started | Requires Gemini API integration |
 | **5-Year Career Planner** | Multi-year progression timeline | 🔲 Not started | No planner data model or logic |
 
-**Module 1 Completion: ~35%** (core analysis, recommendation, comparison done; intelligence features and AI not started)
+**Module 1 Completion: ~50%** (analysis, recommendations, comparison, design components done; multi-country intelligence & AI coach not started)
 
 ---
 
@@ -126,17 +123,17 @@ pathloom/
 
 | Feature | Vision Description | Status | Implementation Details |
 |---------|-------------------|--------|----------------------|
-| **University Finder** | Search by country + program | ✅ Done | Frontend-only with 3 universities in static JS data |
-| **University Intelligence** | Ranking, tuition, acceptance rate, ROI | ⚠️ Partial | QS rank, tuition, employment score present; acceptance rate & ROI missing |
-| **Scholarship Finder** | Browse scholarships by country/degree | ✅ Done | 3 scholarships (MEXT, JASSO, DAAD) with match scoring |
-| **Admission Predictor** | Input CGPA/IELTS/GRE → acceptance probability | ✅ Done | Multi-factor eligibility engine with admission chance % |
+| **University Finder** | Search by country + program | ✅ Done | Expanded static data for 20 universities; program and requirements matching |
+| **University Intelligence** | Ranking, tuition, acceptance rate, ROI | ✅ Done | QS rank, city, average salary, and employment rates displayed |
+| **Scholarship Finder** | Browse scholarships by country/degree | ✅ Done | 16 scholarships covering all 10 target countries |
+| **Admission Predictor** | Input CGPA/IELTS/GRE → acceptance probability | ✅ Done | Predictive chance formula per university with safe/target/reach tiers |
 | **Study Cost Calculator** | Tuition + living cost + scholarships | ⚠️ Partial | Tuition and living cost displayed; net cost after scholarship not calculated |
 | **Study Roadmap** | Month-by-month preparation plan | 🔲 Not started | No timeline generation logic |
-| **Student Visa Planner** | Country → visa route steps | 🔲 Not started | Listed as "Coming Soon" in UI |
+| **Student Visa Planner** | Country → visa route steps | 🔲 Not started | Relocation roadmap preview on Global page |
 | **AI Study Coach** | Conversational study guidance | 🔲 Not started | Requires Gemini API integration |
-| **Academic Profile** | GPA, exam scores, document readiness | ✅ Done | Comprehensive form with GPA conversion, exam scores, document checklist |
+| **Academic Profile** | GPA, exam scores, document readiness | ✅ Done | Central profile setup (GPA scale conversion, score limits, doc checklists) |
 
-**Module 2 Completion: ~40%** (profile, university finder, scholarship matching, admission predictor done; roadmaps and AI not started)
+**Module 2 Completion: ~75%** (Profile, finder, scholarship, country strategy complete; timelines and AI guide remaining)
 
 ---
 
@@ -144,13 +141,13 @@ pathloom/
 
 | Feature | Vision Description | Status | Implementation Details |
 |---------|-------------------|--------|----------------------|
-| **Country Recommendation Engine** | Best country based on profile | ⚠️ Partial | Country scoring in frontend (average match score of universities in that country); no dedicated API |
-| **Immigration Intelligence** | Work visa, PR, citizenship routes | 🔲 Not started | No immigration data |
-| **Migration Planner** | Step-by-step migration path | 🔲 Not started | No data or logic |
-| **Global Salary Ranking** | Highest paying countries ranking | 🔲 Not started | No multi-country salary API |
-| **Opportunity Score** | Per-country composite score | ⚠️ Partial | Basic country match score exists but not a full opportunity score |
+| **Country Recommendation Engine** | Best country based on profile | ✅ Done | Integrated Country Strategy page with match scoring based on profile fit |
+| **Immigration Intelligence** | Work visa, PR, citizenship routes | 🔲 Not started | Upcoming features listed |
+| **Migration Planner** | Step-by-step migration path | 🔲 Not started | Upcoming features listed |
+| **Global Salary Ranking** | Highest paying countries ranking | 🔲 Not started | Upcoming features listed |
+| **Opportunity Score** | Per-country composite score | ⚠️ Partial | Core country Strategy metrics implemented (Safety index, PR score, top fields) |
 
-**Module 3 Completion: ~10%** (basic country scoring only)
+**Module 3 Completion: ~30%** (strategy page, scoring, visual previews done)
 
 ---
 
@@ -318,17 +315,15 @@ Two modes toggled via buttons:
 
 ## ⚠️ Known Issues & Technical Debt
 
-1. **Monolithic frontend:** `App.jsx` is 2,497 lines — needs decomposition into separate components and pages (possibly with React Router)
-2. **No real AI:** The "AI Insight" feature is a template string, not actual LLM output
-3. **CSV database:** Not suitable for production; needs PostgreSQL migration (schema & seeding prepared)
-4. **Incomplete data:** 6 of 15 roles have no skill mappings; only 3 universities
-5. **No authentication:** No user accounts or persistent storage
-6. **No routing:** Single-page app with mode toggle instead of proper routes
-7. **No tests:** Zero unit tests or integration tests
-8. **CORS wildcard:** `allow_origins=["*"]` in production is a security concern
-9. **Frontend data duplication:** Countries/universities exist in both CSV backend and JS frontend
-10. **No error boundaries:** Frontend has no React error boundaries
-11. **No environment configuration:** Backend has no `.env` file or config management
+1. **No real AI:** The "AI Insight" feature is a template string, not actual LLM output
+2. **CSV database:** Not suitable for production; needs PostgreSQL migration (schema & seeding prepared)
+3. **Incomplete data:** 6 of 15 roles have no skill mappings
+4. **No authentication:** No user accounts or persistent storage
+5. **No tests:** Zero unit tests or integration tests
+6. **CORS wildcard:** `allow_origins=["*"]` in production is a security concern
+7. **Frontend data duplication:** Countries/universities exist in both CSV backend and JS frontend
+8. **No error boundaries:** Frontend has no React error boundaries
+9. **No environment configuration:** Backend has no `.env` file or config management
 
 ---
 
@@ -336,15 +331,15 @@ Two modes toggled via buttons:
 
 | Module | Completion | Notes |
 |--------|-----------|-------|
-| Module 1: Career Intelligence | ~35% | Core analysis done; salary intelligence, AI coach, resume analyzer missing |
-| Module 2: Study Intelligence | ~40% | Profile + university + scholarship done; roadmaps, visa, AI coach missing |
-| Module 3: Global Opportunity | ~10% | Basic country scoring only |
+| Module 1: Career Intelligence | ~50% | Core dashboard & pages complete |
+| Module 2: Study Intelligence | ~75% | Full dataset & eligibility complete |
+| Module 3: Global Opportunity | ~30% | Country strategy page complete |
 | Module 4: AI Future Planner | 0% | Not started |
-| **Infrastructure** | ~35% | Local dev only; database schema & seed scripts created |
-| **Data Completeness** | ~15% | Minimal seed data in all categories |
-| **AI Integration** | ~5% | Template strings only; no LLM |
+| **Infrastructure** | ~45% | React Router 7 + Context providers + PostgreSQL schemas prepared |
+| **Data Completeness** | ~40% | Extended countries (10), universities (20), scholarships (16) data |
+| **AI Integration** | ~5% | Template-based placeholders |
 
-### **Overall Estimated Completion: ~22%**
+### **Overall Estimated Completion: ~38%**
 
 ---
 

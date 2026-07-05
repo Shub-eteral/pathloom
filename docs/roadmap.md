@@ -1,6 +1,6 @@
 # 🗺️ Pathloom — 40-Day Development Roadmap
 
-> Last updated: July 3, 2026
+> Last updated: July 5, 2026
 > Start date: June 18, 2026 | Target launch: August 2026
 
 ---
@@ -39,7 +39,7 @@
 
 ---
 
-## Phase 2: Study Intelligence (Days 11–20) 🔄 IN PROGRESS
+## Phase 2: Study Intelligence (Days 11–20) ✅ COMPLETE
 
 **Goal:** Build the study planning module with university/scholarship matching.
 
@@ -58,19 +58,19 @@
 - [x] Scholarship analysis with eligibility breakdown
 - [x] Country strategy view with match scoring
 
-### Day 18–20: Profile & Data Expansion ← CURRENT
+### Day 18–20: Profile & Data Expansion
 - [x] Document readiness checklist (SOP, LOR, CV, passport, transcripts)
 - [x] PhD-specific fields (research projects, publications, faculty match)
 - [x] Profile summary dashboard
-- [ ] Expand university database (target: 20+ universities)
-- [ ] Expand scholarship database (target: 15+ scholarships)
-- [ ] Complete role-skill mappings for all 15 roles
+- [x] Expand university database (target: 20+ universities)
+- [x] Expand scholarship database (target: 15+ scholarships)
+- [x] Complete role-skill mappings for all 15 roles
 
 **Deliverable:** Study planner with admission prediction and scholarship matching.
 
 ---
 
-## Phase 3: AI Integration & Global Intelligence (Days 21–30)
+## Phase 3: AI Integration & Global Intelligence (Days 21–30) 🔄 IN PROGRESS
 
 **Goal:** Integrate Gemini AI and build the global opportunity module.
 
@@ -117,7 +117,7 @@
 - [ ] Study roadmap generation (month-by-month)
 
 ### Day 34–36: Architecture & Polish
-- [ ] Refactor `App.jsx` into modular components with React Router
+- [x] Refactor `App.jsx` into modular components with React Router (Completed early in Phase 2)
 - [ ] Add user authentication (sign up / log in)
 - [ ] Persistent user profiles (database-backed)
 - [ ] Responsive design optimization for mobile
@@ -147,9 +147,9 @@
 | Phase | Days | Status | Completion |
 |-------|------|--------|------------|
 | Phase 1: Foundation | 1–10 | ✅ Complete | 100% |
-| Phase 2: Study Intelligence | 11–20 | 🔄 In Progress | ~80% |
-| Phase 3: AI & Global | 21–30 | 🔲 Not Started | ~5% (schema ready) |
-| Phase 4: Launch | 31–40 | 🔲 Not Started | 0% |
+| Phase 2: Study Intelligence | 11–20 | ✅ Complete | 100% |
+| Phase 3: AI & Global | 21–30 | 🔄 In Progress | ~10% (schema/seeding ready) |
+| Phase 4: Launch | 31–40 | 🔲 Not Started | ~5% (router refactor completed early) |
 
 ---
 
@@ -159,6 +159,6 @@
 |------|--------|------------|
 | Gemini API rate limits | May limit AI coach responsiveness | Cache responses, implement fallback templates |
 | Data quality | Poor university/salary data affects recommendations | Manual curation + user feedback loop |
-| Monolithic frontend | Slows development velocity | Schedule refactoring in Phase 4 |
+| Monolithic frontend | Slows development velocity | Decomposed and restructured with Router (Completed) |
 | Scope creep | 40 days is tight for full vision | Prioritize MVP of each module |
 | No tests | Regressions go undetected | Add test coverage in Phase 4 |

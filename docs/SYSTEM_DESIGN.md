@@ -128,56 +128,48 @@ graph LR
 ```mermaid
 graph TB
     subgraph Entry["Entry Point"]
-        Main["main.jsx<br/>React.createRoot()"]
-        AppCSS["App.css<br/>Design System"]
-        IndexCSS["index.css<br/>Tailwind Import"]
+        Main["main.jsx<br/>BrowserRouter + Providers"]
+        DesignCSS["design-system.css<br/>CSS Variables & Tokens"]
+        IndexCSS["index.css<br/>Tailwind & Font Imports"]
     end
 
-    subgraph App["App.jsx — Monolithic Component (~2,500 lines)"]
-        State["State Management<br/>useState hooks"]
-        Career["Career Mode UI"]
-        Study["Study Mode UI"]
-        API["API Integration<br/>fetch() calls"]
+    subgraph CoreShell["App.jsx — Shell Layout"]
+        Header["Header.jsx<br/>Logo Click & Status"]
+        Sidebar["Sidebar.jsx<br/>Collapsible Fixed Nav"]
+        Footer["Footer.jsx"]
+        Routes["React Router v7 Outlet"]
     end
 
-    subgraph CareerUI["Career Mode Features"]
-        RoleSelect["Role Selection"]
-        SkillSelect["Skill Selection"]
-        ReadinessView["Readiness Score Display"]
-        RecommendView["Recommendations"]
-        CompareView["Comparison Dashboard"]
-        ProfileExport["Profile Export/Import"]
+    subgraph StateManagement["State & Logic Layer"]
+        ApiCtx["ApiContext.jsx<br/>Server Sync (Roles/Skills)"]
+        ProfCtx["ProfileContext.jsx<br/>Global User Selections"]
+        useCareer["useCareerAnalysis.js"]
+        useStudy["useStudyEligibility.js"]
+        useExport["useProfileExport.js"]
     end
 
-    subgraph StudyUI["Study Mode Features"]
-        AcademicProfile["Academic Profile Form"]
-        UniFinder["University Finder"]
-        AdmissionPred["Admission Predictor"]
-        ScholarMatch["Scholarship Matching"]
-        CountryStrat["Country Strategy"]
+    subgraph Pages["Modular Page Components"]
+        Dashboard["DashboardPage.jsx"]
+        CareerGroup["Career Intelligence Pages"]
+        StudyGroup["Study Intelligence Pages"]
+        GlobalPage["GlobalOpportunityPage.jsx"]
+        ProfilePage["ProfilePage.jsx"]
     end
 
-    subgraph StaticData["Static Data (ES Modules)"]
-        Countries["countries.js<br/>5 countries"]
-        Unis["universities.js<br/>3 universities"]
-        Scholarships["scholarships.js<br/>3 scholarships"]
+    subgraph StaticData["Static Configuration Data"]
+        Countries["countries.js (10 countries)"]
+        Unis["universities.js (20 universities)"]
+        Scholarships["scholarships.js (16 scholarships)"]
     end
 
-    subgraph Components["Extracted Components"]
-        Chart["ComparisonChart.jsx<br/>Bar chart"]
-    end
-
-    Main --> App
-    App --> Career
-    App --> Study
-    Career --> CareerUI
-    Study --> StudyUI
-    Study --> StaticData
-    Career --> Components
-    App --> API
+    Main --> CoreShell
+    CoreShell --> Routes
+    Routes --> Pages
+    Pages --> StateManagement
+    StateManagement --> StaticData
 ```
 
-> **⚠️ Technical Debt:** The entire frontend is a single monolithic component (`App.jsx`, ~2,500 lines). This is scheduled for refactoring into modular components with React Router in Phase 4.
+*Note:* The monolithic frontend has been fully decomposed into dedicated page files, layout containers, contexts, and business hooks. Routing is handled via React Router 7.
 
 ---
 

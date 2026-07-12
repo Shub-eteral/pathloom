@@ -18,7 +18,7 @@ All CSV files are located in the `database/` directory and are loaded into memor
 ### 1.1 `roles.csv` — Career Role Catalog
 
 **Loaded by:** `backend/role_loader.py` → `load_roles()`  
-**Records:** 15  
+**Records:** 74  
 **In-memory structure:** `List[Dict]`
 
 | Column | Type | Description | Example |
@@ -31,17 +31,28 @@ All CSV files are located in the `database/` directory and are loaded into memor
 
 | Domain ID | Domain | Roles |
 |-----------|--------|-------|
-| 1 | AI & Data | Data Analyst (1), Data Engineer (2), ML Engineer (3), AI Engineer (4), Data Scientist (5), Business Analyst (6) |
-| 2 | Software Development | Frontend Developer (7), Backend Developer (8), Full Stack Developer (9), Mobile Developer (10) |
-| 3 | Cloud Computing | DevOps Engineer (11), Cloud Engineer (12), Cloud Architect (13) |
-| 4 | Cybersecurity | Cybersecurity Analyst (14), Security Engineer (15) |
+| 1 | AI & Data | Data Analyst, Data Engineer, ML Engineer, AI Engineer, Data Scientist, Business Analyst, Data Architect, NLP Engineer, Computer Vision Engineer, BI Analyst, MLOps Engineer |
+| 2 | Software Development | Frontend Developer, Backend Developer, Full Stack Developer, Mobile Developer, iOS Developer, Android Developer, Game Developer, Embedded Systems Developer, QA Engineer, Solutions Architect |
+| 3 | Cybersecurity | Cybersecurity Analyst, Security Engineer, Penetration Tester, SOC Analyst, Security Architect, Incident Responder |
+| 4 | Cloud Computing | DevOps Engineer, Cloud Engineer, Cloud Architect, Site Reliability Engineer, Platform Engineer, Infrastructure Engineer |
+| 5 | Finance | Financial Analyst, Quantitative Analyst, Risk Analyst, Fintech Developer, Investment Analyst |
+| 6 | Marketing | Digital Marketing Manager, SEO Specialist, Content Strategist, Growth Hacker, Marketing Analyst |
+| 7 | Healthcare | Health Informatics Specialist, Biomedical Engineer, Clinical Data Manager, Healthcare IT Specialist |
+| 8 | Education | Instructional Designer, EdTech Developer, Curriculum Specialist |
+| 9 | Engineering | Mechanical Engineer, Civil Engineer, Electrical Engineer, Robotics Engineer, Systems Engineer |
+| 10 | Hospitality | Hotel Manager, Event Planner, Tourism Analyst |
+| 11 | Government | Policy Analyst, Public Affairs Specialist |
+| 12 | Legal | Legal Tech Specialist, Compliance Analyst, Contract Analyst |
+| 13 | Human Resources | HR Analyst, Talent Acquisition Specialist, Compensation Analyst |
+| 14 | Sales | Sales Engineer, Account Manager, Revenue Operations Analyst |
+| 15 | Design | UX Designer, UI Developer, Product Designer, Motion Designer, Brand Strategist |
 
 ---
 
 ### 1.2 `skills.csv` — Technical Skill Catalog
 
 **Loaded by:** `backend/skill_loader.py` → `load_skills()`  
-**Records:** 20  
+**Records:** 140  
 **In-memory structure:** `Dict[str, str]` (skill_id → skill_name)
 
 | Column | Type | Description | Example |
@@ -49,27 +60,29 @@ All CSV files are located in the `database/` directory and are loaded into memor
 | `skill_id` | string | Unique skill identifier | `"1"` |
 | `skill_name` | string | Human-readable skill name | `"Python"` |
 
-**Complete Skill List:**
+**Sample Skill List:**
 
 | ID | Skill | ID | Skill |
 |----|-------|----|-------|
 | 1 | Python | 11 | Docker |
 | 2 | SQL | 12 | AWS |
-| 3 | Excel | 13 | Git |
-| 4 | Pandas | 14 | JavaScript |
-| 5 | NumPy | 15 | React |
-| 6 | Machine Learning | 16 | Node.js |
-| 7 | Deep Learning | 17 | HTML |
-| 8 | PyTorch | 18 | CSS |
-| 9 | TensorFlow | 19 | Statistics |
-| 10 | Spark | 20 | Data Visualization |
+| 14 | JavaScript | 15 | React |
+| 21 | Java | 22 | C++ |
+| 24 | Go | 25 | Rust |
+| 45 | MongoDB | 46 | PostgreSQL |
+| 53 | NLP | 54 | Computer Vision |
+| 57 | LLMs | 58 | MLOps |
+| 61 | Kubernetes | 62 | Terraform |
+| 66 | Network Security | 78 | Figma |
+| 84 | Project Management | 85 | Agile/Scrum |
+| 110| AutoCAD | 115| Embedded C |
 
 ---
 
 ### 1.3 `role_skills.csv` — Role-Skill Mappings
 
 **Loaded by:** `backend/data_loader.py` → `load_role_skills()`  
-**Records:** 45  
+**Records:** 450+  
 **In-memory structure:** `Dict[str, List[Dict]]` (role_id → list of {skill_id, importance})
 
 | Column | Type | Description | Example |
@@ -88,44 +101,25 @@ All CSV files are located in the `database/` directory and are loaded into memor
 | 1–3 | Nice to have — differentiator but not required |
 
 **Data Coverage:**
-
-| Role ID | Role Name | Mappings | Status |
-|---------|-----------|----------|--------|
-| 1 | Data Analyst | ✅ Has mappings | Complete |
-| 2 | Data Engineer | ✅ Has mappings | Complete |
-| 3 | ML Engineer | ✅ Has mappings | Complete |
-| 4 | AI Engineer | ✅ Has mappings | Complete |
-| 5 | Data Scientist | ✅ Has mappings | Complete |
-| 6 | Business Analyst | ❌ No mappings | **Gap** |
-| 7 | Frontend Developer | ✅ Has mappings | Complete |
-| 8 | Backend Developer | ✅ Has mappings | Complete |
-| 9 | Full Stack Developer | ✅ Has mappings | Complete |
-| 10 | Mobile Developer | ❌ No mappings | **Gap** |
-| 11 | DevOps Engineer | ❌ No mappings | **Gap** |
-| 12 | Cloud Engineer | ❌ No mappings | **Gap** |
-| 13 | Cloud Architect | ❌ No mappings | **Gap** |
-| 14 | Cybersecurity Analyst | ❌ No mappings | **Gap** |
-| 15 | Security Engineer | ❌ No mappings | **Gap** |
-
-> **⚠️ Data Gap:** 6 of 15 roles (40%) have zero skill mappings. These roles will return 0% readiness scores and won't appear in recommendations.
+All 74 roles are fully mapped to 5-8 relevant skills (total 450+ mappings). There are no remaining data gaps in role-skill coverage.
 
 ---
 
 ### 1.4 `careerinfo.csv` — Career Metadata
 
 **Loaded by:** `backend/career_loader.py` → `load_career_info()`  
-**Records:** 15  
+**Records:** 74  
 **In-memory structure:** `Dict[str, Dict]` (role_id → {salary, demand, difficulty, learning_time})
 
 | Column | Type | Description | Example |
 |--------|------|-------------|---------|
 | `role_id` | string | Foreign key to roles.csv | `"2"` |
-| `salary` | string | Salary range (India LPA) | `"6-18 LPA"` |
+| `salary` | string | Global salary range (USD) | `"$90k-$140k"` |
 | `demand` | string | Market demand level | `"High"` |
-| `difficulty` | string | Skill difficulty tier | `"Advanced"` |
-| `learning_time` | string | Estimated time to learn | `"6-12 months"` |
+| `difficulty` | string | Skill difficulty tier | `"Medium"` |
+| `learning_time` | string | Estimated time to learn | `"6 Months"` |
 
-> **Note:** Salary data is currently India-only in LPA (Lakhs Per Annum) format. Multi-country salary data will be stored in the `salary_data` PostgreSQL table after migration.
+> **Note:** Salary data has been upgraded from India LPA to global USD ranges for all 74 roles, aligning with international mobility options.
 
 ---
 
@@ -160,82 +154,83 @@ Located in `frontend/src/data/`. These are JavaScript modules imported directly 
 
 ### 2.1 `countries.js` — Study Destination Countries
 
-**Records:** 5
+**Records:** 20
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `id` | string | Country identifier |
+| `id` | number | Country identifier |
 | `name` | string | Country name |
-| `flag` | string | Emoji flag |
-| `tuitionRange` | string | Annual tuition range |
-| `livingCost` | string | Monthly living cost range |
-| `visaDifficulty` | string | Difficulty level |
-| `prPathway` | string | PR availability |
-| `workRights` | string | Work rights for students |
-| `topCities` | array | Major cities |
+| `tuition` | string | Annual tuition range |
+| `avg_living_cost` | string | Monthly living cost range |
+| `visa_difficulty` | string | Visa difficulty level |
+| `pr_score` | number | PR availability score (1-10) |
+| `work_rights` | string | Student work rights |
+| `scholarships` | string | Scholarship availability level |
+| `language` | string | Primary language of instruction |
+| `currency` | string | Currency code & symbol |
+| `avg_living_cost` | string | Monthly living cost estimate |
+| `climate` | string | Climate description |
+| `safety_index` | number | Safety index rating |
+| `international_student_population` | string | Estimated international student count |
+| `post_study_work_visa_duration` | string | Post-study stay back option |
+| `top_fields` | array | Prominent fields of study |
 
-**Countries covered:** Japan, USA, Germany, Canada, Australia
+**Countries covered:** Japan, USA, Germany, Canada, Australia, United Kingdom, South Korea, Netherlands, Singapore, France, Sweden, Switzerland, New Zealand, Ireland, Finland, Norway, Denmark, Italy, Spain, Malaysia
 
 ---
 
 ### 2.2 `universities.js` — University Database
 
-**Records:** 3
+**Records:** 58
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `id` | string | University identifier |
-| `name` | string | University name |
+| `id` | number | University identifier |
 | `country` | string | Country name |
 | `city` | string | City name |
-| `qsRank` | number | QS World Ranking |
-| `type` | string | Public/Private |
-| `tuitionUSD` | number | Annual tuition in USD |
-| `livingCostUSD` | number | Annual living cost in USD |
-| `employmentScore` | number | Graduate employment rate (%) |
-| `scholarshipAvailable` | boolean | Scholarship availability |
-| `intakes` | array | Intake seasons |
-| `programs` | array | Available programs with requirements |
+| `name` | string | University name |
+| `qs_rank` | number | QS World Ranking |
+| `tuition` | number | Typical annual tuition in USD |
+| `living_cost` | number | Typical annual living cost in USD |
+| `scholarships` | object | Scholarship type availability flags |
+| `employment_score` | number | Graduate employability score |
+| `employment_rate` | number | Average employment rate (0-1) |
+| `average_salary` | string | Typical graduate starting salary |
+| `work_rights` | string | Student work rights description |
+| `intakes` | array | Available entry terms |
+| `programs` | array | Available degree programs with requirements |
 
-**Universities covered:** University of Tokyo, Kyoto University, TU Munich
+**Universities covered:** 58 top-tier institutions across all 20 countries, including University of Tokyo, MIT, Stanford, TU Munich, University of Toronto, University of Melbourne, Imperial College London, ETH Zurich, and more.
 
 Each program object contains:
 | Field | Type | Description |
 |-------|------|-------------|
-| `name` | string | Program name |
+| `course` | string | Program/course title |
 | `level` | string | Bachelor's / Master's / PhD |
-| `duration` | string | Duration |
-| `language` | string | Instruction language |
-| `minGPA4` | number | Minimum GPA (4.0 scale) |
-| `minGPA10` | number | Minimum GPA (10.0 scale) |
-| `minIELTS` | number | Minimum IELTS score |
-| `minTOEFL` | number | Minimum TOEFL score |
-| `jlptRequired` | string | JLPT requirement (for Japan) |
-| `careerOutcomes` | array | Career outcomes |
+| `language_track` | string | Instruction language track |
+| `requirements` | object | Required scores: gpa10, gpa4, ielts, toefl, gre, sat, act, work_experience_years, research_projects, publications, etc. |
+| `careers` | array | Target career outcomes |
 
 ---
 
 ### 2.3 `scholarships.js` — Scholarship Database
 
-**Records:** 3
+**Records:** 45
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `id` | string | Scholarship identifier |
+| `id` | number | Scholarship identifier |
 | `name` | string | Scholarship name |
-| `country` | string | Country |
-| `type` | string | Full / Partial |
-| `coverage` | string | What it covers |
-| `amountUSD` | number | Annual amount in USD |
-| `degreeLevels` | array | Eligible degree levels |
-| `minGPA10` | number | Minimum GPA (10.0 scale) |
-| `minGPA4` | number | Minimum GPA (4.0 scale) |
-| `minIELTS` | number | Minimum IELTS score |
+| `country` | string | Host country |
+| `amount` | string | Award coverage/stipend details |
+| `min_gpa_10` | number | Minimum GPA (10.0 scale) |
+| `min_ielts` | number | Minimum IELTS score |
+| `degree_levels` | array | Eligible degree levels |
+| `type` | string | Government / University / Foundation |
 | `deadline` | string | Application deadline |
-| `renewable` | boolean | Is it renewable? |
-| `notes` | string | Additional notes |
+| `eligibility_notes` | string | Additional eligibility criteria notes |
 
-**Scholarships covered:** MEXT (Japan), JASSO (Japan), DAAD (Germany)
+**Scholarships covered:** MEXT, JASSO, ADB, DAAD, Deutschland Stipendium, Fulbright, Hubert H. Humphrey, Vanier, Lester B. Pearson, Banting, Australia Awards, RTP, Chevening, Gates Cambridge, Rhodes, and 30 others.
 
 ---
 
@@ -453,13 +448,13 @@ The seed script uses the Supabase Python SDK to:
 
 | Data Category | Current Records | Target | Gap |
 |--------------|----------------|--------|-----|
-| Career Roles | 15 | 15 | ✅ Complete |
-| Skills | 20 | 30+ | 🔲 Need soft skills, domain-specific skills |
-| Role-Skill Mappings | 45 (9 roles) | 90+ (all 15 roles) | 🔲 6 roles have zero mappings |
-| Salary Data | 15 (India only) | 150+ (10 countries) | 🔲 No multi-country data |
-| Universities | 3 | 20+ | 🔲 Minimal coverage |
-| Scholarships | 3 | 15+ | 🔲 Minimal coverage |
-| Countries | 10 (catalog only) | 10 (with full intelligence) | 🔲 No intelligence data |
+| Career Roles | 74 | 74 | ✅ Complete |
+| Skills | 140 | 140 | ✅ Complete (soft + tech skills) |
+| Role-Skill Mappings | 450+ | 450+ | ✅ Complete (all roles mapped) |
+| Salary Data | 74 (Global USD) | 74 (Global USD) | ✅ Complete |
+| Universities | 58 | 58 | ✅ Complete |
+| Scholarships | 45 | 45 | ✅ Complete |
+| Countries | 20 (Study-focused) | 20 (Study-focused) | ✅ Complete |
 | Cost of Living | 0 | 20+ cities | 🔲 Not started |
 | Visa Routes | 0 | 30+ routes | 🔲 Not started |
 | Market Trends | 0 | Historical data needed | 🔲 Not started |
@@ -468,4 +463,4 @@ The seed script uses the Supabase Python SDK to:
 ---
 
 > **Document Owner:** Pathloom Development Team  
-> **Last Updated:** July 3, 2026
+> **Last Updated:** July 12, 2026

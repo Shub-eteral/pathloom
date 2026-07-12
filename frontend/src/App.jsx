@@ -1,6 +1,6 @@
-/* App.jsx — slim application shell with routing */
+/* App.jsx — application shell with section-aware routing */
 import { useState } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 
 /* Layout */
 import Header from './components/layout/Header';
@@ -20,9 +20,21 @@ import GlobalOpportunityPage from './pages/GlobalOpportunityPage';
 import ProfilePage from './pages/ProfilePage';
 import NotFoundPage from './pages/NotFoundPage';
 
+/* Resolve route to section class for accent scoping */
+function getSectionClass(pathname) {
+  if (pathname.startsWith('/career')) return 'pl-section--career';
+  if (pathname.startsWith('/study')) return 'pl-section--study';
+  if (pathname.startsWith('/global')) return 'pl-section--global';
+  if (pathname.startsWith('/profile')) return 'pl-section--profile';
+  return 'pl-section--dashboard';
+}
+
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const location = useLocation();
+
+  const sectionClass = getSectionClass(location.pathname);
 
   const handleLogoClick = () => {
     if (window.innerWidth < 768) {
@@ -43,20 +55,22 @@ export default function App() {
           isCollapsed={sidebarCollapsed}
         />
 
-        <main className={`pl-main-content ${sidebarCollapsed ? 'pl-main-content--collapsed' : ''}`}>
-          <Routes>
-            <Route path="/" element={<DashboardPage />} />
-            <Route path="/career" element={<CareerAnalysisPage />} />
-            <Route path="/career/recommend" element={<CareerRecommendPage />} />
-            <Route path="/career/compare" element={<CareerComparePage />} />
-            <Route path="/study" element={<StudyProfilePage />} />
-            <Route path="/study/universities" element={<UniversityFinderPage />} />
-            <Route path="/study/scholarships" element={<ScholarshipPage />} />
-            <Route path="/study/countries" element={<CountryStrategyPage />} />
-            <Route path="/global" element={<GlobalOpportunityPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
+        <main className={`pl-main-content ${sidebarCollapsed ? 'pl-main-content--collapsed' : ''} ${sectionClass}`}>
+          <div className="pl-page-enter" key={location.pathname}>
+            <Routes>
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="/career" element={<CareerAnalysisPage />} />
+              <Route path="/career/recommend" element={<CareerRecommendPage />} />
+              <Route path="/career/compare" element={<CareerComparePage />} />
+              <Route path="/study" element={<StudyProfilePage />} />
+              <Route path="/study/universities" element={<UniversityFinderPage />} />
+              <Route path="/study/scholarships" element={<ScholarshipPage />} />
+              <Route path="/study/countries" element={<CountryStrategyPage />} />
+              <Route path="/global" element={<GlobalOpportunityPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </div>
           <Footer />
         </main>
       </div>

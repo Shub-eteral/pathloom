@@ -1,16 +1,16 @@
-/* StatusBadge — connection/tier status indicators */
+/* StatusBadge — connection status indicator */
 
-export default function StatusBadge({ status = "online", label }) {
-  const defaultLabels = {
-    online: "Connected",
-    connecting: "Connecting…",
-    offline: "Server offline",
-  };
+export default function StatusBadge({ status = "offline", label = "" }) {
+  const statusClass = {
+    online: "pl-status--online",
+    connecting: "pl-status--connecting",
+    offline: "pl-status--offline",
+  }[status] || "pl-status--offline";
 
   return (
-    <div className={`pl-status pl-status--${status}`}>
-      <span className="pl-status-dot" />
-      <span>{label || defaultLabels[status] || status}</span>
+    <div className={`pl-status ${statusClass}`}>
+      <div className="pl-status-dot" />
+      <span>{label || status}</span>
     </div>
   );
 }

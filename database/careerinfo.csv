@@ -1,17 +1,75 @@
 role_id,salary,demand,difficulty,learning_time
-
-1,6-10 LPA,High,Easy,3 Months
-2,12-18 LPA,High,Medium,6 Months
-3,15-25 LPA,Very High,Hard,9 Months
-4,18-30 LPA,Very High,Hard,12 Months
-5,12-22 LPA,High,Hard,8 Months
-6,6-12 LPA,Medium,Easy,3 Months
-7,8-16 LPA,High,Medium,4 Months
-8,10-18 LPA,High,Medium,5 Months
-9,12-20 LPA,Very High,Medium,7 Months
-10,10-18 LPA,High,Medium,6 Months
-11,14-24 LPA,Very High,Hard,8 Months
-12,15-28 LPA,Very High,Hard,9 Months
-13,20-35 LPA,Very High,Very Hard,12 Months
-14,8-16 LPA,High,Medium,5 Months
-15,12-22 LPA,Very High,Hard,8 Months
+1,$55k-$85k,High,Easy,3 Months
+2,$90k-$140k,Very High,Medium,6 Months
+3,$120k-$180k,Very High,Hard,9 Months
+4,$130k-$200k,Very High,Hard,12 Months
+5,$100k-$160k,High,Hard,8 Months
+6,$60k-$95k,High,Easy,3 Months
+7,$120k-$170k,High,Hard,10 Months
+8,$110k-$170k,Very High,Hard,9 Months
+9,$115k-$175k,High,Hard,10 Months
+10,$55k-$90k,Medium,Easy,3 Months
+11,$100k-$155k,Very High,Medium,6 Months
+12,$70k-$120k,Very High,Medium,4 Months
+13,$80k-$130k,Very High,Medium,5 Months
+14,$90k-$145k,Very High,Medium,7 Months
+15,$75k-$125k,High,Medium,6 Months
+16,$85k-$140k,High,Medium,6 Months
+17,$80k-$130k,High,Medium,6 Months
+18,$70k-$120k,Medium,Hard,8 Months
+19,$65k-$110k,Medium,Hard,8 Months
+20,$60k-$100k,High,Medium,4 Months
+21,$130k-$200k,High,Hard,12 Months
+22,$100k-$160k,Very High,Hard,8 Months
+23,$110k-$165k,Very High,Hard,9 Months
+24,$140k-$210k,Very High,Very Hard,12 Months
+25,$120k-$180k,Very High,Hard,10 Months
+26,$105k-$160k,High,Hard,9 Months
+27,$95k-$150k,High,Medium,8 Months
+28,$65k-$105k,High,Medium,5 Months
+29,$95k-$155k,Very High,Hard,8 Months
+30,$80k-$130k,High,Hard,7 Months
+31,$55k-$90k,High,Medium,4 Months
+32,$140k-$200k,High,Very Hard,12 Months
+33,$65k-$100k,Medium,Medium,5 Months
+34,$65k-$100k,High,Medium,4 Months
+35,$120k-$200k,High,Very Hard,12 Months
+36,$70k-$110k,High,Medium,5 Months
+37,$90k-$145k,High,Hard,8 Months
+38,$60k-$95k,Medium,Medium,5 Months
+39,$55k-$85k,High,Easy,3 Months
+40,$45k-$75k,Medium,Easy,3 Months
+41,$50k-$80k,Medium,Easy,3 Months
+42,$65k-$110k,High,Medium,5 Months
+43,$55k-$90k,Medium,Medium,4 Months
+44,$70k-$110k,High,Medium,6 Months
+45,$75k-$120k,High,Hard,12 Months
+46,$55k-$85k,Medium,Medium,4 Months
+47,$65k-$105k,High,Medium,6 Months
+48,$50k-$80k,Medium,Easy,3 Months
+49,$70k-$115k,High,Medium,6 Months
+50,$55k-$75k,Medium,Easy,3 Months
+51,$70k-$110k,High,Hard,12 Months
+52,$65k-$100k,High,Hard,12 Months
+53,$75k-$120k,High,Hard,12 Months
+54,$95k-$155k,Very High,Very Hard,12 Months
+55,$90k-$140k,High,Hard,10 Months
+56,$45k-$75k,Medium,Easy,4 Months
+57,$40k-$65k,Medium,Easy,3 Months
+58,$50k-$80k,Medium,Medium,4 Months
+59,$65k-$100k,Medium,Medium,6 Months
+60,$55k-$85k,Low,Medium,5 Months
+61,$75k-$120k,High,Hard,8 Months
+62,$60k-$95k,High,Medium,5 Months
+63,$55k-$85k,Medium,Medium,4 Months
+64,$55k-$85k,Medium,Easy,3 Months
+65,$50k-$80k,Medium,Easy,3 Months
+66,$60k-$95k,Medium,Medium,4 Months
+67,$90k-$140k,High,Medium,6 Months
+68,$55k-$90k,High,Easy,3 Months
+69,$65k-$105k,High,Medium,5 Months
+70,$80k-$130k,Very High,Medium,6 Months
+71,$70k-$115k,High,Medium,5 Months
+72,$90k-$145k,Very High,Medium,7 Months
+73,$65k-$110k,Medium,Medium,5 Months
+74,$60k-$100k,Medium,Medium,5 Months

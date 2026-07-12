@@ -1,4 +1,4 @@
-/* Sidebar — page-based navigation with active state highlighting */
+/* Sidebar — section-colored navigation with pill-shaped active indicator */
 import { NavLink } from 'react-router-dom';
 import {
   HomeIcon, BriefcaseIcon, SparklesIcon, ChartBarIcon,
@@ -9,12 +9,14 @@ import {
 const navSections = [
   {
     label: "Overview",
+    section: "dashboard",
     items: [
       { to: "/", icon: HomeIcon, label: "Dashboard", end: true },
     ],
   },
   {
-    label: "Career Intelligence",
+    label: "Career",
+    section: "career",
     items: [
       { to: "/career", icon: BriefcaseIcon, label: "Fit Analysis", end: true },
       { to: "/career/recommend", icon: SparklesIcon, label: "Recommendations" },
@@ -22,7 +24,8 @@ const navSections = [
     ],
   },
   {
-    label: "Study Intelligence",
+    label: "Study",
+    section: "study",
     items: [
       { to: "/study", icon: AcademicCapIcon, label: "Academic Profile", end: true },
       { to: "/study/universities", icon: BuildingIcon, label: "University Finder" },
@@ -32,12 +35,14 @@ const navSections = [
   },
   {
     label: "Global",
+    section: "global",
     items: [
       { to: "/global", icon: GlobeIcon, label: "Opportunities" },
     ],
   },
   {
     label: "Account",
+    section: "profile",
     items: [
       { to: "/profile", icon: UserIcon, label: "My Profile" },
     ],
@@ -51,12 +56,17 @@ export default function Sidebar({ isOpen, onClose, isCollapsed }) {
         <div className="pl-sidebar-overlay md:hidden" onClick={onClose} />
       )}
       <aside className={`pl-sidebar ${isOpen ? "pl-sidebar--open" : ""} ${isCollapsed ? "pl-sidebar--collapsed" : ""} hidden md:block`}>
-        <nav className="py-4">
-          {navSections.map((section) => (
-            <div key={section.label} className="pl-nav-section">
-              {isCollapsed ? (
-                <div className="border-t border-slate-100 my-2 mx-4" />
-              ) : (
+        <nav className="py-3">
+          {navSections.map((section, sectionIdx) => (
+            <div key={section.label} className={`pl-nav-section pl-section--${section.section}`}>
+              {sectionIdx > 0 && (
+                isCollapsed ? (
+                  <div className="pl-nav-divider" />
+                ) : (
+                  <div className="pl-nav-section-label">{section.label}</div>
+                )
+              )}
+              {sectionIdx === 0 && !isCollapsed && (
                 <div className="pl-nav-section-label">{section.label}</div>
               )}
               {section.items.map((item) => (

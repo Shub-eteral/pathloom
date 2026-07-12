@@ -1,4 +1,4 @@
-/* CountryStrategyPage — country comparison and strategy */
+/* CountryStrategyPage — country comparison with green accent */
 import { useProfile } from '../../contexts/ProfileContext';
 import usePageTitle from '../../hooks/usePageTitle';
 import useStudyEligibility from '../../hooks/useStudyEligibility';
@@ -22,10 +22,10 @@ export default function CountryStrategyPage() {
     .sort((a, b) => b.score - a.score);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div>
-        <h1 className="pl-display text-2xl font-bold">Country Strategy</h1>
-        <p className="mt-1 text-sm" style={{ color: "var(--ink-soft)" }}>
+        <h1 className="pl-page-title">Country Strategy</h1>
+        <p className="pl-page-subtitle">
           Compare study destinations based on your profile match, affordability, and opportunities.
         </p>
       </div>
@@ -37,22 +37,27 @@ export default function CountryStrategyPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {countryData.map((country) => {
-            const catColor = country.category === "SAFE" ? "var(--teal)" : country.category === "TARGET" ? "var(--brass)" : "var(--rust)";
+            const catColor = country.category === "SAFE" ? 'var(--success)' : country.category === "TARGET" ? 'var(--warning)' : 'var(--danger)';
             const isCurrentTarget = country.name === studyCountry;
 
             return (
-              <Panel key={country.id} className={`p-5 ${isCurrentTarget ? "ring-2 ring-[var(--indigo)]" : ""}`}>
+              <Panel key={country.id} className={`p-5 ${isCurrentTarget ? 'ring-2' : ''}`}
+                style={isCurrentTarget ? { '--tw-ring-color': 'var(--accent)' } : {}}>
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h3 className="font-bold text-base" style={{ color: "var(--ink)" }}>
+                    <h3 className="font-bold text-base" style={{ color: 'var(--text-primary)' }}>
                       {country.name}
-                      {isCurrentTarget && <span className="ml-2 text-xs font-semibold" style={{ color: "var(--indigo)" }}>(Your target)</span>}
+                      {isCurrentTarget && <span className="ml-2 text-xs font-semibold" style={{ color: 'var(--accent)' }}>(Your target)</span>}
                     </h3>
-                    <p className="text-xs mt-0.5" style={{ color: "var(--ink-faint)" }}>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
                       {country.language} · {country.currency}
                     </p>
                   </div>
-                  <span className="pl-tag px-2.5 py-0.5 text-xs font-bold" style={{ background: `color-mix(in srgb, ${catColor} 15%, white)`, color: catColor, border: `1px solid color-mix(in srgb, ${catColor} 25%, white)` }}>
+                  <span className="pl-tag px-2.5 py-0.5 text-xs font-bold"
+                    style={{
+                      background: country.category === "SAFE" ? 'var(--success-soft)' : country.category === "TARGET" ? 'var(--warning-soft)' : 'var(--danger-soft)',
+                      color: catColor
+                    }}>
                     {country.category}
                   </span>
                 </div>
@@ -60,33 +65,33 @@ export default function CountryStrategyPage() {
                 {country.hasUniversities && (
                   <>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="pl-field-label" style={{ fontSize: "0.58rem" }}>Profile Match</span>
+                      <span className="pl-label" style={{ fontSize: '0.55rem' }}>Profile Match</span>
                       <span className="pl-mono font-bold text-xs" style={{ color: catColor }}>{country.score}%</span>
                     </div>
-                    <ThreadGauge value={country.score} tone={country.category === "SAFE" ? "teal" : country.category === "TARGET" ? "brass" : "rust"} size="sm" />
+                    <ThreadGauge value={country.score} tone={country.category === "SAFE" ? "success" : country.category === "TARGET" ? "warning" : "danger"} size="sm" />
                   </>
                 )}
 
                 <div className="grid grid-cols-2 gap-2 mt-3">
-                  <div className="p-2 rounded-lg" style={{ background: "var(--canvas)" }}>
-                    <span className="block text-[0.55rem] uppercase font-semibold" style={{ color: "var(--ink-faint)" }}>Tuition</span>
+                  <div className="p-2 rounded-lg" style={{ background: 'var(--surface-2)' }}>
+                    <span className="block text-[0.55rem] uppercase font-semibold" style={{ color: 'var(--text-tertiary)' }}>Tuition</span>
                     <span className="block text-xs font-bold mt-0.5">{country.tuition}</span>
                   </div>
-                  <div className="p-2 rounded-lg" style={{ background: "var(--canvas)" }}>
-                    <span className="block text-[0.55rem] uppercase font-semibold" style={{ color: "var(--ink-faint)" }}>Living Cost</span>
+                  <div className="p-2 rounded-lg" style={{ background: 'var(--surface-2)' }}>
+                    <span className="block text-[0.55rem] uppercase font-semibold" style={{ color: 'var(--text-tertiary)' }}>Living Cost</span>
                     <span className="block text-xs font-bold mt-0.5">{country.avg_living_cost}</span>
                   </div>
-                  <div className="p-2 rounded-lg" style={{ background: "var(--canvas)" }}>
-                    <span className="block text-[0.55rem] uppercase font-semibold" style={{ color: "var(--ink-faint)" }}>Visa</span>
+                  <div className="p-2 rounded-lg" style={{ background: 'var(--surface-2)' }}>
+                    <span className="block text-[0.55rem] uppercase font-semibold" style={{ color: 'var(--text-tertiary)' }}>Visa</span>
                     <span className="block text-xs font-bold mt-0.5">{country.visa_difficulty}</span>
                   </div>
-                  <div className="p-2 rounded-lg" style={{ background: "var(--canvas)" }}>
-                    <span className="block text-[0.55rem] uppercase font-semibold" style={{ color: "var(--ink-faint)" }}>PR Score</span>
+                  <div className="p-2 rounded-lg" style={{ background: 'var(--surface-2)' }}>
+                    <span className="block text-[0.55rem] uppercase font-semibold" style={{ color: 'var(--text-tertiary)' }}>PR Score</span>
                     <span className="block text-xs font-bold mt-0.5">{country.pr_score}/10</span>
                   </div>
                 </div>
 
-                <div className="mt-3 text-xs space-y-1" style={{ color: "var(--ink-soft)" }}>
+                <div className="mt-3 text-xs space-y-1" style={{ color: 'var(--text-secondary)' }}>
                   <p>Post-study work: {country.post_study_work_visa_duration}</p>
                   <p>Safety: {country.safety_index}/10 · Intl students: {country.international_student_population}</p>
                   <p>Top fields: {country.top_fields?.join(", ")}</p>

@@ -1,4 +1,4 @@
-/* GlobalOpportunityPage — coming soon placeholder */
+/* GlobalOpportunityPage — coming soon with blue accent */
 import usePageTitle from '../hooks/usePageTitle';
 import Panel from '../components/ui/Panel';
 import { GlobeIcon, SparklesIcon } from '../components/icons/Icons';
@@ -15,37 +15,37 @@ export default function GlobalOpportunityPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div>
-        <h1 className="pl-display text-2xl font-bold">Global Opportunities</h1>
-        <p className="mt-1 text-sm" style={{ color: "var(--ink-soft)" }}>
+        <h1 className="pl-page-title">Global Opportunities</h1>
+        <p className="pl-page-subtitle">
           Discover worldwide career and immigration opportunities tailored to your profile.
         </p>
       </div>
 
       <div className="pl-coming-soon p-8 text-center">
-        <GlobeIcon className="w-12 h-12 mx-auto mb-4" style={{ color: "var(--brass)" }} />
-        <h2 className="pl-display text-xl font-bold mb-2" style={{ color: "var(--ink)" }}>Coming Soon</h2>
-        <p className="text-sm max-w-md mx-auto" style={{ color: "var(--ink-soft)" }}>
-          The Global Opportunity Intelligence module is under active development. Here's what's on the way:
+        <GlobeIcon className="w-12 h-12 mx-auto mb-4" style={{ color: 'var(--accent)' }} />
+        <h2 className="pl-display text-xl mb-2" style={{ color: 'var(--text-primary)' }}>Coming Soon</h2>
+        <p className="text-sm max-w-md mx-auto" style={{ color: 'var(--text-secondary)' }}>
+          The Global Opportunity Intelligence module is under active development. Here is what is on the way:
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {upcomingFeatures.map((feature, i) => (
-          <Panel key={i} className="p-5 opacity-75">
-            <span className="pl-tag pl-tag--indigo px-2.5 py-0.5 text-[0.62rem] font-bold uppercase tracking-wider">
+          <Panel key={i} className="p-5" style={{ opacity: 0.8 }}>
+            <span className="pl-tag pl-tag--accent px-2.5 py-0.5 text-[0.6rem] font-bold uppercase tracking-wider">
               {feature.tag}
             </span>
-            <h3 className="font-bold text-sm mt-3" style={{ color: "var(--ink)" }}>{feature.title}</h3>
-            <p className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>{feature.desc}</p>
+            <h3 className="font-bold text-sm mt-3" style={{ color: 'var(--text-primary)' }}>{feature.title}</h3>
+            <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>{feature.desc}</p>
           </Panel>
         ))}
       </div>
 
       <Panel className="p-5 flex items-center gap-3">
-        <SparklesIcon className="w-5 h-5 shrink-0" style={{ color: "var(--brass)" }} />
-        <p className="text-sm" style={{ color: "var(--ink-soft)" }}>
+        <SparklesIcon className="w-5 h-5 shrink-0" style={{ color: 'var(--accent)' }} />
+        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
           <strong>Expected in Phase 3</strong> — This module requires AI integration (Gemini API) and expanded country data.
           Track progress in the project roadmap.
         </p>

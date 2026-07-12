@@ -34,7 +34,7 @@ export default function SearchInput({
     <div className="relative" ref={ref}>
       {label && <label htmlFor={id} className="pl-field-label mb-2">{label}</label>}
       <div className="relative">
-        <SearchIcon className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "var(--ink-faint)" }} />
+        <SearchIcon className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "var(--text-tertiary)" }} />
         <input
           id={id}
           type="text"
@@ -57,7 +57,7 @@ export default function SearchInput({
       {isOpen && (
         <div id={`${id}-listbox`} role="listbox" className="pl-dropdown absolute left-0 right-0 mt-2 max-h-64 overflow-y-auto z-50 p-2">
           {items.length === 0 ? (
-            <div className="text-center py-4 text-xs font-medium" style={{ color: "var(--ink-faint)" }}>
+            <div className="text-center py-4 text-xs font-medium" style={{ color: "var(--text-tertiary)" }}>
               No results found.
             </div>
           ) : (

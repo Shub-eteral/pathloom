@@ -19,3 +19,123 @@ skill_id,skill_name
 18,CSS
 19,Statistics
 20,Data Visualization
+21,Java
+22,C++
+23,C#
+24,Go
+25,Rust
+26,Swift
+27,Kotlin
+28,TypeScript
+29,Ruby
+30,PHP
+31,R
+32,MATLAB
+33,Scala
+34,Julia
+35,Angular
+36,Vue.js
+37,Next.js
+38,Django
+39,Flask
+40,Express.js
+41,Spring Boot
+42,GraphQL
+43,REST APIs
+44,NoSQL
+45,MongoDB
+46,PostgreSQL
+47,Redis
+48,Elasticsearch
+49,Kafka
+50,Hadoop
+51,Airflow
+52,dbt
+53,NLP
+54,Computer Vision
+55,Scikit-learn
+56,Hugging Face
+57,LLMs
+58,MLOps
+59,Azure
+60,GCP
+61,Kubernetes
+62,Terraform
+63,CI/CD
+64,Jenkins
+65,GitHub Actions
+66,Network Security
+67,Cryptography
+68,SIEM
+69,Penetration Testing
+70,Compliance (SOC2/ISO)
+71,Incident Response
+72,Power BI
+73,Tableau
+74,Looker
+75,Financial Modeling
+76,Market Research
+77,CRM (Salesforce)
+78,Figma
+79,Adobe Creative Suite
+80,Wireframing
+81,User Research
+82,Design Systems
+83,Prototyping
+84,Project Management
+85,Agile/Scrum
+86,Technical Writing
+87,Leadership
+88,Communication
+89,Problem Solving
+90,Linux
+91,Networking
+92,Bash/Shell Scripting
+93,API Development
+94,Microservices
+95,System Design
+96,Database Design
+97,Data Warehousing
+98,ETL Pipelines
+99,A/B Testing
+100,Google Analytics
+101,SEO
+102,Content Marketing
+103,Social Media Marketing
+104,Email Marketing
+105,Copywriting
+106,Adobe After Effects
+107,Blender
+108,Unity
+109,Unreal Engine
+110,AutoCAD
+111,SolidWorks
+112,CATIA
+113,PLC Programming
+114,IoT
+115,Embedded C
+116,VHDL/Verilog
+117,Circuit Design
+118,Signal Processing
+119,Biostatistics
+120,Clinical Research
+121,HIPAA Compliance
+122,EHR Systems
+123,Healthcare Data
+124,Curriculum Design
+125,LMS Platforms
+126,Public Speaking
+127,Policy Analysis
+128,Legal Research
+129,Contract Law
+130,Regulatory Compliance
+131,HRIS Systems
+132,Talent Analytics
+133,Compensation Planning
+134,Negotiation
+135,Account Management
+136,Revenue Forecasting
+137,React Native
+138,Flutter
+139,SwiftUI
+140,Jetpack Compose

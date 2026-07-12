@@ -1,4 +1,4 @@
-/* Button — primary, ghost, and outline variants */
+/* Button — primary, ghost, outline variants with section-aware accent */
 
 export default function Button({ variant = "primary", children, className = "", ...rest }) {
   return (

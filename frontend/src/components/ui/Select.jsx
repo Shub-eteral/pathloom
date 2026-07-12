@@ -22,7 +22,7 @@ export default function Select({ id, label, value, onChange, options, placeholde
             );
           })}
         </select>
-        <ChevronIcon className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "var(--ink-faint)" }} />
+        <ChevronIcon className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "var(--text-tertiary)" }} />
       </div>
     </div>
   );

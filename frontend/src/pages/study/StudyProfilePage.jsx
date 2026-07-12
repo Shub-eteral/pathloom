@@ -1,4 +1,4 @@
-/* StudyProfilePage — academic profile setup */
+/* StudyProfilePage — academic profile setup with sage green accent */
 import { useProfile } from '../../contexts/ProfileContext';
 import usePageTitle from '../../hooks/usePageTitle';
 import useStudyEligibility from '../../hooks/useStudyEligibility';
@@ -53,31 +53,31 @@ export default function StudyProfilePage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="pl-display text-2xl font-bold">Academic Profile</h1>
-          <p className="mt-1 text-sm" style={{ color: "var(--ink-soft)" }}>
+          <h1 className="pl-page-title">Academic Profile</h1>
+          <p className="pl-page-subtitle">
             Build your academic profile for university and scholarship matching.
           </p>
         </div>
         <div className="text-right">
-          <span className="pl-mono text-sm font-semibold" style={{ color: completeness >= 70 ? "var(--teal)" : "var(--brass)" }}>{completeness}%</span>
-          <p className="text-xs" style={{ color: "var(--ink-faint)" }}>Profile complete</p>
+          <span className="pl-mono text-sm font-bold" style={{ color: completeness >= 70 ? 'var(--success)' : 'var(--warning)' }}>{completeness}%</span>
+          <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Profile complete</p>
         </div>
       </div>
 
       {/* Completeness bar */}
       <Panel className="p-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="pl-field-label">Profile Completeness</span>
+          <span className="pl-label">Profile Completeness</span>
           <span className="pl-mono font-semibold text-sm">{completeness}%</span>
         </div>
-        <ThreadGauge value={completeness} tone={completeness >= 70 ? "teal" : completeness >= 40 ? "brass" : "rust"} size="md" />
+        <ThreadGauge value={completeness} tone={completeness >= 70 ? "success" : completeness >= 40 ? "warning" : "danger"} size="md" />
       </Panel>
 
       {/* Destination & Goal */}
-      <Panel className="p-6">
+      <Panel className="p-6" accent>
         <PanelHead title="Destination & Goals" subtitle="Where do you want to study and what do you want to become?" />
         <div className="grid md:grid-cols-3 gap-4">
           <Select id="study-country" label="Target Country" value={studyCountry} onChange={setStudyCountry} options={countryOptions} placeholder="Select country…" />
@@ -94,21 +94,21 @@ export default function StudyProfilePage() {
           <div className="space-y-2">
             <label htmlFor="gpa-score" className="pl-field-label">GPA Score</label>
             <input id="gpa-score" type="number" step="0.01" min="0" max={gpaScale === "10" ? "10" : "4"} value={gpaScore}
-              onChange={(e) => setGpaScore(e.target.value)} placeholder="Enter GPA" className="pl-input px-4 py-3.5" />
+              onChange={(e) => setGpaScore(e.target.value)} placeholder="Enter GPA" className="pl-input px-4 py-3" />
           </div>
           <Select id="preferred-intake" label="Preferred Intake" value={preferredIntake} onChange={setPreferredIntake} options={INTAKE_SEASONS} placeholder="Select intake…" />
         </div>
 
         {/* Exam Scores */}
-        <div className="mt-6 pt-6" style={{ borderTop: "1px solid var(--line)" }}>
-          <h3 className="pl-field-label mb-4">Standardized Exam Scores</h3>
+        <div className="mt-5 pt-5" style={{ borderTop: '1px solid var(--border)' }}>
+          <h3 className="pl-label mb-4">Standardized Exam Scores</h3>
           <div className="grid md:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="pl-field-label mb-2">Language Exam</label>
               <div className="flex flex-wrap gap-2">
                 {supportedLanguageExams.map((exam) => (
                   <button key={exam} type="button" onClick={() => setLanguageExam(exam)}
-                    className={`pl-chip px-3 py-1.5 font-semibold ${languageExam === exam ? "bg-indigo-600 text-white border-indigo-600" : ""}`}>
+                    className={`pl-chip px-3 py-1.5 font-semibold ${languageExam === exam ? "pl-chip--active" : ""}`}>
                     {exam}
                   </button>
                 ))}
@@ -120,7 +120,7 @@ export default function StudyProfilePage() {
                 <div className="flex flex-wrap gap-2">
                   {(ADMISSION_EXAMS_BY_LEVEL[degreeLevel] || []).map((exam) => (
                     <button key={exam} type="button" onClick={() => setAdmissionExam(exam)}
-                      className={`pl-chip px-3 py-1.5 font-semibold ${admissionExam === exam ? "bg-indigo-600 text-white border-indigo-600" : ""}`}>
+                      className={`pl-chip px-3 py-1.5 font-semibold ${admissionExam === exam ? "pl-chip--active" : ""}`}>
                       {exam}
                     </button>
                   ))}
@@ -134,14 +134,14 @@ export default function StudyProfilePage() {
               <div className="space-y-2">
                 <label className="pl-field-label">{languageExam} Score</label>
                 <input type="number" value={examScores[languageExam] || ""} onChange={(e) => handleExamScoreChange(languageExam, e.target.value)}
-                  placeholder={`Enter ${languageExam} score`} className="pl-input px-4 py-3.5" />
+                  placeholder={`Enter ${languageExam} score`} className="pl-input px-4 py-3" />
               </div>
             )}
             {admissionExam && (
               <div className="space-y-2">
                 <label className="pl-field-label">{admissionExam} Score</label>
                 <input type="number" value={examScores[admissionExam] || ""} onChange={(e) => handleExamScoreChange(admissionExam, e.target.value)}
-                  placeholder={`Enter ${admissionExam} score`} className="pl-input px-4 py-3.5" />
+                  placeholder={`Enter ${admissionExam} score`} className="pl-input px-4 py-3" />
               </div>
             )}
           </div>
@@ -161,18 +161,18 @@ export default function StudyProfilePage() {
           <Select id="leadership" label="Leadership Experience" value={leadershipExperience} onChange={setLeadershipExperience} options={LEADERSHIP_OPTIONS} placeholder="Select…" />
           <div className="space-y-2">
             <label className="pl-field-label">Research Projects</label>
-            <input type="number" min="0" value={researchProjects} onChange={(e) => setResearchProjects(e.target.value)} placeholder="0" className="pl-input px-4 py-3.5" />
+            <input type="number" min="0" value={researchProjects} onChange={(e) => setResearchProjects(e.target.value)} placeholder="0" className="pl-input px-4 py-3" />
           </div>
         </div>
         {degreeLevel === "PhD" && (
           <div className="grid md:grid-cols-3 gap-4 mt-4">
             <div className="space-y-2">
               <label className="pl-field-label">Publications</label>
-              <input type="number" min="0" value={publicationCount} onChange={(e) => setPublicationCount(e.target.value)} placeholder="0" className="pl-input px-4 py-3.5" />
+              <input type="number" min="0" value={publicationCount} onChange={(e) => setPublicationCount(e.target.value)} placeholder="0" className="pl-input px-4 py-3" />
             </div>
             <div className="flex items-center gap-3 pt-6">
               <input type="checkbox" id="faculty-match" checked={facultyMatch} onChange={(e) => setFacultyMatch(e.target.checked)} className="pl-checkbox h-5 w-5" />
-              <label htmlFor="faculty-match" className="text-sm font-medium" style={{ color: "var(--ink-soft)" }}>Faculty match confirmed</label>
+              <label htmlFor="faculty-match" className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Faculty match confirmed</label>
             </div>
           </div>
         )}
@@ -183,11 +183,14 @@ export default function StudyProfilePage() {
         <PanelHead title="Document Readiness" subtitle="Track your application document preparation." />
         <div className="grid md:grid-cols-2 gap-3">
           {Object.entries(documentLabels).map(([key, label]) => (
-            <label key={key} className="flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors"
-              style={{ border: "1px solid var(--line)" }}>
-              <input type="checkbox" checked={documentReadiness[key]} onChange={() => toggleDocument(key)} className="pl-checkbox h-5 w-5" />
-              <span className="text-sm font-medium" style={{ color: documentReadiness[key] ? "var(--teal)" : "var(--ink-soft)" }}>
-                {documentReadiness[key] ? "✓" : "○"} {label}
+            <label
+              key={key}
+              className={`pl-doc-check ${documentReadiness[key] ? 'pl-doc-check--done' : ''}`}
+              onClick={() => toggleDocument(key)}
+            >
+              <input type="checkbox" checked={documentReadiness[key]} onChange={() => {}} className="pl-checkbox h-4.5 w-4.5" />
+              <span className="text-sm font-medium" style={{ color: documentReadiness[key] ? 'var(--success)' : 'var(--text-secondary)' }}>
+                {label}
               </span>
             </label>
           ))}

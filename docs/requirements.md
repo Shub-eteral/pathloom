@@ -1,6 +1,6 @@
 # 📋 Technical Requirements & Stack
 
-> Last updated: July 3, 2026
+> Last updated: July 12, 2026
 >
 > Part of the [Pathloom Documentation Suite](./INDEX.md)
 
@@ -72,10 +72,10 @@ Pathloom follows a client-server architecture with a React frontend consuming a 
 
 | File | Columns | Records | Purpose |
 |------|---------|---------|---------|
-| `roles.csv` | role_id, role_name, domain_id | 15 | Career role catalog |
-| `skills.csv` | skill_id, skill_name | 20 | Technical skill catalog |
-| `role_skills.csv` | role_id, skill_id, importance | 45 | Skill requirements per role |
-| `careerinfo.csv` | role_id, salary, demand, difficulty, learning_time | 15 | Career metadata |
+| `roles.csv` | role_id, role_name, domain_id | 74 | Career role catalog |
+| `skills.csv` | skill_id, skill_name | 140 | Technical skill catalog |
+| `role_skills.csv` | role_id, skill_id, importance | 450+ | Skill requirements per role |
+| `careerinfo.csv` | role_id, salary, demand, difficulty, learning_time | 74 | Career metadata |
 | `countries.csv` | country_id, country_name | 10 | Country catalog |
 | `domains.csv` | domain_id, domain_name | 15 | Career domain catalog |
 

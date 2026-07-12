@@ -1,4 +1,4 @@
-/* CareerAnalysisPage — role selection + fit analysis */
+/* CareerAnalysisPage — role selection + fit analysis with amber accent */
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import usePageTitle from '../../hooks/usePageTitle';
@@ -46,8 +46,8 @@ export default function CareerAnalysisPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="pl-display text-2xl font-bold">Career Fit Analysis</h1>
-        <p className="mt-1 text-sm" style={{ color: "var(--ink-soft)" }}>
+        <h1 className="pl-page-title">Career Fit Analysis</h1>
+        <p className="pl-page-subtitle">
           Select a target role and your skills to analyze career readiness.
         </p>
       </div>
@@ -59,10 +59,10 @@ export default function CareerAnalysisPage() {
         </Alert>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* LEFT — Configuration */}
         <section className="lg:col-span-5">
-          <Panel className="p-6">
+          <Panel className="p-6" accent>
             <PanelHead title="Build your profile" subtitle="Set a target role, then add the skills you bring." />
 
             <Select
@@ -74,7 +74,7 @@ export default function CareerAnalysisPage() {
               placeholder="Select a role…"
             />
 
-            <div className="mt-6">
+            <div className="mt-5">
               <SearchInput
                 id="skill-search"
                 label="Your skills"
@@ -85,7 +85,7 @@ export default function CareerAnalysisPage() {
                 searchValue={skillSearch}
                 onSearchChange={setSkillSearch}
               />
-              <div className="mt-4">
+              <div className="mt-3">
                 <ChipGroup
                   items={selectedSkills}
                   labels={skills}
@@ -95,14 +95,14 @@ export default function CareerAnalysisPage() {
               </div>
             </div>
 
-            {analyzeError && <div className="pl-alert pl-alert--rust mt-4 p-3.5">{analyzeError}</div>}
+            {analyzeError && <div className="pl-alert pl-alert--rust mt-4 p-3">{analyzeError}</div>}
 
-            <div className="flex flex-col gap-2 mt-8 pt-5" style={{ borderTop: "1px solid var(--line)" }}>
+            <div className="flex flex-col gap-2 mt-6 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
               <div className="flex gap-2">
-                <Button variant="primary" onClick={analyzeCareer} disabled={isLoading} className="flex-1 px-5 py-3.5">
+                <Button variant="primary" onClick={analyzeCareer} disabled={isLoading} className="flex-1 px-5 py-3">
                   {isLoading ? <><Spinner /><span>Analyzing…</span></> : <span>Analyze fit</span>}
                 </Button>
-                <Button variant="ghost" onClick={handleClear} disabled={isLoading} className="px-4 py-3.5">
+                <Button variant="ghost" onClick={handleClear} disabled={isLoading} className="px-4 py-3">
                   Clear
                 </Button>
               </div>
@@ -110,17 +110,17 @@ export default function CareerAnalysisPage() {
                 variant="outline"
                 onClick={handleFindAlternatives}
                 disabled={isLoadingRecommendations}
-                className="w-full px-5 py-3.5"
+                className="w-full px-5 py-3"
               >
-                {isLoadingRecommendations ? "Loading alternatives…" : "Find alternative roles →"}
+                {isLoadingRecommendations ? "Loading alternatives…" : "Find alternative roles"}
               </Button>
-              {recommendError && <div className="pl-alert pl-alert--rust mt-1 p-3.5">{recommendError}</div>}
+              {recommendError && <div className="pl-alert pl-alert--rust mt-1 p-3">{recommendError}</div>}
             </div>
           </Panel>
         </section>
 
         {/* RIGHT — Analysis Results */}
-        <div className="lg:col-span-7 space-y-6">
+        <div className="lg:col-span-7 space-y-5">
           <Panel className="p-6">
             <PanelHead title="Fit analysis" subtitle="See how your skills measure up to the role." />
 
@@ -130,40 +130,40 @@ export default function CareerAnalysisPage() {
                 body="Choose a target role and add your skills, then run the analysis."
               />
             ) : (
-              <div className="space-y-6">
-                <div className="p-4 rounded-xl" style={{ background: "var(--canvas)", border: "1px solid var(--line)" }}>
-                  <div className="flex items-center justify-between mb-2.5">
-                    <span className="pl-field-label">Readiness score</span>
-                    <span className="pl-mono pl-hero-score text-base" style={{ color: "var(--teal)" }}>{result.readiness_score}%</span>
+              <div className="space-y-5">
+                <div className="p-4 rounded-xl" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="pl-label">Readiness score</span>
+                    <span className="pl-mono font-bold text-lg" style={{ color: 'var(--success)' }}>{result.readiness_score}%</span>
                   </div>
-                  <ThreadGauge value={result.readiness_score} tone="teal" size="lg" />
+                  <ThreadGauge value={result.readiness_score} tone="success" size="lg" />
                 </div>
 
-                <div className="pt-4" style={{ borderTop: "1px solid var(--line)" }}>
-                  <h3 className="pl-field-label mb-3">Skills to develop</h3>
+                <div className="pt-4" style={{ borderTop: '1px solid var(--border)' }}>
+                  <h3 className="pl-label mb-3">Skills to develop</h3>
                   {result.missing_skills.length === 0 ? (
                     <Alert variant="teal">
                       <div className="flex items-center gap-2">
                         <CheckIcon className="w-5 h-5 shrink-0" />
-                        <span>You have all the required skills for this role!</span>
+                        <span>You have all the required skills for this role.</span>
                       </div>
                     </Alert>
                   ) : (
                     <div className="flex flex-wrap gap-2">
                       {result.missing_skills.map((skill, i) => (
-                        <span key={i} className="pl-tag pl-tag--rust px-3 py-1">{skill}</span>
+                        <span key={i} className="pl-tag pl-tag--danger px-3 py-1">{skill}</span>
                       ))}
                     </div>
                   )}
                 </div>
 
-                <div className="pt-4" style={{ borderTop: "1px solid var(--line)" }}>
-                  <h3 className="pl-field-label mb-4">Upskilling roadmap</h3>
+                <div className="pt-4" style={{ borderTop: '1px solid var(--border)' }}>
+                  <h3 className="pl-label mb-4">Upskilling roadmap</h3>
                   <div className="space-y-4">
                     {result.roadmap.map((step, i) => (
                       <div key={i} className="pl-roadmap-item flex gap-4">
                         <div className="pl-roadmap-index">{i + 1}</div>
-                        <div className="pl-roadmap-text flex-1 p-3.5 font-medium">
+                        <div className="pl-roadmap-text flex-1 p-3 font-medium">
                           {step.replace(/^Step \d+:\s*/, "")}
                         </div>
                       </div>

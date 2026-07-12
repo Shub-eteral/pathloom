@@ -5,12 +5,71 @@ role_id,role_name,domain_id
 4,AI Engineer,1
 5,Data Scientist,1
 6,Business Analyst,1
-7,Frontend Developer,2
-8,Backend Developer,2
-9,Full Stack Developer,2
-10,Mobile Developer,2
-11,DevOps Engineer,4
-12,Cloud Engineer,4
-13,Cloud Architect,4
-14,Cybersecurity Analyst,3
-15,Security Engineer,3
+7,Data Architect,1
+8,NLP Engineer,1
+9,Computer Vision Engineer,1
+10,BI Analyst,1
+11,MLOps Engineer,1
+12,Frontend Developer,2
+13,Backend Developer,2
+14,Full Stack Developer,2
+15,Mobile Developer,2
+16,iOS Developer,2
+17,Android Developer,2
+18,Game Developer,2
+19,Embedded Systems Developer,2
+20,QA Engineer,2
+21,Solutions Architect,2
+22,DevOps Engineer,4
+23,Cloud Engineer,4
+24,Cloud Architect,4
+25,Site Reliability Engineer,4
+26,Platform Engineer,4
+27,Infrastructure Engineer,4
+28,Cybersecurity Analyst,3
+29,Security Engineer,3
+30,Penetration Tester,3
+31,SOC Analyst,3
+32,Security Architect,3
+33,Incident Responder,3
+34,Financial Analyst,5
+35,Quantitative Analyst,5
+36,Risk Analyst,5
+37,Fintech Developer,5
+38,Investment Analyst,5
+39,Digital Marketing Manager,6
+40,SEO Specialist,6
+41,Content Strategist,6
+42,Growth Hacker,6
+43,Marketing Analyst,6
+44,Health Informatics Specialist,7
+45,Biomedical Engineer,7
+46,Clinical Data Manager,7
+47,Healthcare IT Specialist,7
+48,Instructional Designer,8
+49,EdTech Developer,8
+50,Curriculum Specialist,8
+51,Mechanical Engineer,9
+52,Civil Engineer,9
+53,Electrical Engineer,9
+54,Robotics Engineer,9
+55,Systems Engineer,9
+56,Hotel Manager,10
+57,Event Planner,10
+58,Tourism Analyst,10
+59,Policy Analyst,11
+60,Public Affairs Specialist,11
+61,Legal Tech Specialist,12
+62,Compliance Analyst,12
+63,Contract Analyst,12
+64,HR Analyst,13
+65,Talent Acquisition Specialist,13
+66,Compensation Analyst,13
+67,Sales Engineer,14
+68,Account Manager,14
+69,Revenue Operations Analyst,14
+70,UX Designer,15
+71,UI Developer,15
+72,Product Designer,15
+73,Motion Designer,15
+74,Brand Strategist,15

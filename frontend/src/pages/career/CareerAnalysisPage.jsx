@@ -1,4 +1,4 @@
-/* CareerAnalysisPage — role selection + fit analysis with amber accent */
+/* CareerAnalysisPage — role selection + radial gauge results with gradient accents */
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import usePageTitle from '../../hooks/usePageTitle';
@@ -11,9 +11,10 @@ import Select from '../../components/ui/Select';
 import SearchInput from '../../components/ui/SearchInput';
 import ChipGroup from '../../components/ui/ChipGroup';
 import EmptyState from '../../components/ui/EmptyState';
+import RadialGauge from '../../components/ui/RadialGauge';
 import ThreadGauge from '../../components/ui/ThreadGauge';
 import Alert from '../../components/ui/Alert';
-import { CheckIcon } from '../../components/icons/Icons';
+import { CheckIcon, TargetIcon } from '../../components/icons/Icons';
 
 export default function CareerAnalysisPage() {
   usePageTitle('Career Fit Analysis');
@@ -126,19 +127,37 @@ export default function CareerAnalysisPage() {
 
             {!result ? (
               <EmptyState
+                icon={<TargetIcon className="w-10 h-10" />}
                 title="No analysis yet"
                 body="Choose a target role and add your skills, then run the analysis."
               />
             ) : (
               <div className="space-y-5">
-                <div className="p-4 rounded-xl" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="pl-label">Readiness score</span>
-                    <span className="pl-mono font-bold text-lg" style={{ color: 'var(--success)' }}>{result.readiness_score}%</span>
+                {/* Readiness Score — Radial Gauge */}
+                <div className="flex items-center gap-6 p-5 rounded-2xl" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+                  <RadialGauge
+                    value={result.readiness_score}
+                    size={100}
+                    strokeWidth={7}
+                    label="Readiness"
+                    tone={result.readiness_score >= 70 ? 'success' : result.readiness_score >= 40 ? 'warning' : 'danger'}
+                  />
+                  <div className="flex-1">
+                    <span className="pl-label">Career Readiness Score</span>
+                    <p className="text-sm mt-1.5" style={{ color: 'var(--text-secondary)' }}>
+                      {result.readiness_score >= 70
+                        ? "Strong match — you have most of the required skills."
+                        : result.readiness_score >= 40
+                        ? "Moderate fit — some skill gaps to address."
+                        : "Early stage — significant upskilling needed."}
+                    </p>
+                    <div className="mt-2">
+                      <ThreadGauge value={result.readiness_score} tone={result.readiness_score >= 70 ? "success" : result.readiness_score >= 40 ? "warning" : "danger"} size="sm" />
+                    </div>
                   </div>
-                  <ThreadGauge value={result.readiness_score} tone="success" size="lg" />
                 </div>
 
+                {/* Missing Skills */}
                 <div className="pt-4" style={{ borderTop: '1px solid var(--border)' }}>
                   <h3 className="pl-label mb-3">Skills to develop</h3>
                   {result.missing_skills.length === 0 ? (
@@ -151,19 +170,26 @@ export default function CareerAnalysisPage() {
                   ) : (
                     <div className="flex flex-wrap gap-2">
                       {result.missing_skills.map((skill, i) => (
-                        <span key={i} className="pl-tag pl-tag--danger px-3 py-1">{skill}</span>
+                        <span
+                          key={i}
+                          className="pl-tag pl-tag--danger px-3 py-1.5 pl-stagger"
+                          style={{ '--stagger-index': i }}
+                        >
+                          {skill}
+                        </span>
                       ))}
                     </div>
                   )}
                 </div>
 
+                {/* Upskilling Roadmap */}
                 <div className="pt-4" style={{ borderTop: '1px solid var(--border)' }}>
                   <h3 className="pl-label mb-4">Upskilling roadmap</h3>
                   <div className="space-y-4">
                     {result.roadmap.map((step, i) => (
-                      <div key={i} className="pl-roadmap-item flex gap-4">
+                      <div key={i} className="pl-roadmap-item flex gap-4 pl-stagger" style={{ '--stagger-index': i }}>
                         <div className="pl-roadmap-index">{i + 1}</div>
-                        <div className="pl-roadmap-text flex-1 p-3 font-medium">
+                        <div className="pl-roadmap-text flex-1 p-3.5 font-medium">
                           {step.replace(/^Step \d+:\s*/, "")}
                         </div>
                       </div>

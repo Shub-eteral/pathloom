@@ -1,4 +1,4 @@
-/* UniversityFinderPage — university search and results with green accent */
+/* UniversityFinderPage — university cards with tier-colored edges and glow badges */
 import { useState } from 'react';
 import usePageTitle from '../../hooks/usePageTitle';
 import { useProfile } from '../../contexts/ProfileContext';
@@ -7,7 +7,8 @@ import universities from '../../data/universities';
 import Panel from '../../components/ui/Panel';
 import ThreadGauge from '../../components/ui/ThreadGauge';
 import EmptyState from '../../components/ui/EmptyState';
-import { SearchIcon, CheckIcon, CloseIcon } from '../../components/icons/Icons';
+import GlowBadge from '../../components/ui/GlowBadge';
+import { SearchIcon, CheckIcon, CloseIcon, BuildingIcon } from '../../components/icons/Icons';
 
 export default function UniversityFinderPage() {
   usePageTitle('University Finder');
@@ -52,7 +53,7 @@ export default function UniversityFinderPage() {
       </div>
 
       {/* Search & Sort Bar */}
-      <Panel className="p-4">
+      <Panel className="p-4" glass>
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <SearchIcon className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-tertiary)' }} />
@@ -75,37 +76,38 @@ export default function UniversityFinderPage() {
       {/* Results */}
       {filteredList.length === 0 ? (
         <Panel className="p-6">
-          <EmptyState title="No universities found" body="Try adjusting your search, country, or budget filters." />
+          <EmptyState
+            icon={<BuildingIcon className="w-10 h-10" />}
+            title="No universities found"
+            body="Try adjusting your search, country, or budget filters."
+          />
         </Panel>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredList.map((uni) => {
+          {filteredList.map((uni, index) => {
             const matchScore = getMatchScore(uni);
             const eligibility = getEligibilityResult(uni);
             const admissionChance = getAdmissionChance(uni);
             const tier = getAdmissionTier(admissionChance);
             const program = getRecommendedProgram(uni);
             const scholarshipScore = getScholarshipChanceScore(uni);
-            const tierColor = tier === "SAFE" ? 'var(--success)' : tier === "TARGET" ? 'var(--warning)' : 'var(--danger)';
+            const tierClass = tier === "SAFE" ? 'pl-card--tier-safe' : tier === "TARGET" ? 'pl-card--tier-target' : 'pl-card--tier-reach';
             const isSelected = selectedUni?.id === uni.id;
 
             return (
               <div key={uni.id}
-                className={`pl-card p-5 cursor-pointer ${isSelected ? 'ring-2' : ''}`}
-                style={isSelected ? { '--tw-ring-color': 'var(--accent)' } : {}}
+                className={`pl-card ${tierClass} p-5 cursor-pointer pl-stagger ${isSelected ? 'ring-2' : ''}`}
+                style={{
+                  '--stagger-index': Math.min(index, 8),
+                  ...(isSelected ? { '--tw-ring-color': 'var(--accent)' } : {}),
+                }}
                 onClick={() => setSelectedUni(isSelected ? null : uni)}>
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <h3 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{uni.name}</h3>
                     <p className="text-xs mt-0.5" style={{ color: 'var(--text-tertiary)' }}>{uni.city}, {uni.country} · QS #{uni.qs_rank}</p>
                   </div>
-                  <span className="pl-tag px-2 py-0.5 text-xs font-bold"
-                    style={{
-                      background: tier === "SAFE" ? 'var(--success-soft)' : tier === "TARGET" ? 'var(--warning-soft)' : 'var(--danger-soft)',
-                      color: tierColor
-                    }}>
-                    {tier}
-                  </span>
+                  <GlowBadge tone={tier}>{tier}</GlowBadge>
                 </div>
 
                 <div className="flex items-center justify-between mb-1">
@@ -115,15 +117,15 @@ export default function UniversityFinderPage() {
                 <ThreadGauge value={matchScore} tone="accent" size="sm" />
 
                 <div className="grid grid-cols-3 gap-2 mt-3">
-                  <div className="text-center p-2 rounded-lg" style={{ background: 'var(--surface-2)' }}>
+                  <div className="text-center p-2.5 rounded-xl" style={{ background: 'var(--surface-2)' }}>
                     <span className="block text-[0.55rem] uppercase font-semibold" style={{ color: 'var(--text-tertiary)' }}>Tuition</span>
                     <span className="block text-xs font-bold mt-0.5 pl-mono">${(uni.tuition / 1000).toFixed(0)}k</span>
                   </div>
-                  <div className="text-center p-2 rounded-lg" style={{ background: 'var(--surface-2)' }}>
+                  <div className="text-center p-2.5 rounded-xl" style={{ background: 'var(--surface-2)' }}>
                     <span className="block text-[0.55rem] uppercase font-semibold" style={{ color: 'var(--text-tertiary)' }}>Admission</span>
-                    <span className="block text-xs font-bold mt-0.5 pl-mono" style={{ color: tierColor }}>{admissionChance}%</span>
+                    <span className="block text-xs font-bold mt-0.5 pl-mono" style={{ color: tier === "SAFE" ? 'var(--success)' : tier === "TARGET" ? 'var(--warning)' : 'var(--danger)' }}>{admissionChance}%</span>
                   </div>
-                  <div className="text-center p-2 rounded-lg" style={{ background: 'var(--surface-2)' }}>
+                  <div className="text-center p-2.5 rounded-xl" style={{ background: 'var(--surface-2)' }}>
                     <span className="block text-[0.55rem] uppercase font-semibold" style={{ color: 'var(--text-tertiary)' }}>Scholarship</span>
                     <span className="block text-xs font-bold mt-0.5 pl-mono">{scholarshipScore}%</span>
                   </div>
@@ -151,11 +153,11 @@ export default function UniversityFinderPage() {
                       ))}
                     </div>
                     <div className="grid grid-cols-2 gap-2 mt-3">
-                      <div className="pl-stat pl-stat--card p-2">
+                      <div className="pl-stat pl-stat--card p-2.5">
                         <span className="pl-stat-label">Avg Salary</span>
                         <strong className="pl-stat-value text-sm">{uni.average_salary}</strong>
                       </div>
-                      <div className="pl-stat pl-stat--card p-2">
+                      <div className="pl-stat pl-stat--card p-2.5">
                         <span className="pl-stat-label">Employment</span>
                         <strong className="pl-stat-value text-sm">{Math.round(uni.employment_rate * 100)}%</strong>
                       </div>

@@ -1,9 +1,10 @@
-/* StudyProfilePage — academic profile setup with sage green accent */
+/* StudyProfilePage — academic profile with radial gauge completeness indicator */
 import { useProfile } from '../../contexts/ProfileContext';
 import usePageTitle from '../../hooks/usePageTitle';
 import useStudyEligibility from '../../hooks/useStudyEligibility';
 import Panel, { PanelHead } from '../../components/ui/Panel';
 import Select from '../../components/ui/Select';
+import RadialGauge from '../../components/ui/RadialGauge';
 import ThreadGauge from '../../components/ui/ThreadGauge';
 import countries from '../../data/countries';
 import careerGoals from '../../data/careerGoals';
@@ -54,16 +55,22 @@ export default function StudyProfilePage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      {/* Header with radial gauge */}
+      <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="pl-page-title">Academic Profile</h1>
           <p className="pl-page-subtitle">
             Build your academic profile for university and scholarship matching.
           </p>
         </div>
-        <div className="text-right">
-          <span className="pl-mono text-sm font-bold" style={{ color: completeness >= 70 ? 'var(--success)' : 'var(--warning)' }}>{completeness}%</span>
-          <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Profile complete</p>
+        <div className="shrink-0 flex flex-col items-center">
+          <RadialGauge
+            value={completeness}
+            size={70}
+            strokeWidth={5}
+            tone={completeness >= 70 ? 'success' : completeness >= 40 ? 'warning' : 'danger'}
+          />
+          <span className="text-xs font-medium mt-1" style={{ color: 'var(--text-tertiary)' }}>Complete</span>
         </div>
       </div>
 
@@ -182,10 +189,11 @@ export default function StudyProfilePage() {
       <Panel className="p-6">
         <PanelHead title="Document Readiness" subtitle="Track your application document preparation." />
         <div className="grid md:grid-cols-2 gap-3">
-          {Object.entries(documentLabels).map(([key, label]) => (
+          {Object.entries(documentLabels).map(([key, label], i) => (
             <label
               key={key}
-              className={`pl-doc-check ${documentReadiness[key] ? 'pl-doc-check--done' : ''}`}
+              className={`pl-doc-check pl-stagger ${documentReadiness[key] ? 'pl-doc-check--done' : ''}`}
+              style={{ '--stagger-index': i }}
               onClick={() => toggleDocument(key)}
             >
               <input type="checkbox" checked={documentReadiness[key]} onChange={() => {}} className="pl-checkbox h-4.5 w-4.5" />

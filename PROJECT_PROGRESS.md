@@ -1,6 +1,6 @@
 # Pathloom — Project Progress Tracker
 
-> **Last Updated:** July 12, 2026
+> **Last Updated:** July 13, 2026
 > **Project Start Date:** June 18, 2026
 > **Development Days Elapsed:** ~24 of 40
 > **Target Launch:** August 2026
@@ -13,7 +13,7 @@
 
 Pathloom is an AI-powered Career, Study & Global Opportunity Intelligence Platform. The vision is to become a single platform that answers: *"Given who I am today, what is the best path to the future I want?"*
 
-**Current Status:** The platform has undergone a complete UI redesign ("Linen" design system) with dark/light theme support and section-contextual accent colors. Data has been massively expanded from a small prototype dataset to a comprehensive real-world dataset (74 roles, 140 skills, 58 universities, 45 scholarships, 20 countries). All frontend pages are restyled and all backend endpoints serve the expanded data.
+**Current Status:** The platform has undergone a complete UI/UX redesign ("Meridian" design system) with glassmorphism, radial progress gauges, and gradient accents. Data is expanded to a real-world dataset (74 roles, 140 skills, 58 universities, 45 scholarships, 20 countries). All frontend pages and components are fully restyled to use the new Meridian look, and all backend endpoints serve the data correctly.
 
 ---
 
@@ -24,7 +24,7 @@ Pathloom is an AI-powered Career, Study & Global Opportunity Intelligence Platfo
 | Layer | Technology | Status |
 |-------|-----------|--------|
 | **Frontend** | React 19 + Vite 8 + Router 7 + CSS Design System | ✅ Active |
-| **Design System** | "Linen" — Custom CSS tokens, dark/light themes, section accents | ✅ Active |
+| **Design System** | "Meridian" — Glassmorphism, radial gauges, gradient section accents | ✅ Active |
 | **Backend** | Python + FastAPI | ✅ Active |
 | **Database** | CSV flat files (7 files) | ✅ Active (temporary) |
 | **AI Integration** | Template-based insights (no LLM) | ⚠️ Placeholder |
@@ -86,14 +86,14 @@ pathloom/
 │   ├── src/
 │   │   ├── App.jsx       # Routing layout with section-aware class wrapping
 │   │   ├── main.jsx      # React entry point with Providers (Theme, Api, Profile)
-│   │   ├── index.css     # Typography setup (Plus Jakarta Sans, JetBrains Mono)
+│   │   ├── index.css     # Typography setup (Space Grotesk, Inter, JetBrains Mono)
 │   │   ├── styles/
-│   │   │   └── design-system.css  # "Linen" design system (500+ lines of tokens)
+│   │   │   └── design-system.css  # "Meridian" design system (990+ lines of custom tokens)
 │   │   ├── data/         # Expanded datasets (20 countries, 58 universities, 45 scholarships)
 │   │   ├── contexts/     # Shared states (ApiContext, ProfileContext, ThemeContext)
 │   │   ├── hooks/        # Custom react hooks (career, study, export logic)
 │   │   ├── components/
-│   │   │   ├── ui/       # UI primitives (Panel, Button, ThemeToggle, ThreadGauge, etc.)
+│   │   │   ├── ui/       # UI primitives (Panel, Button, ThemeToggle, ThreadGauge, RadialGauge, GlowBadge, etc.)
 │   │   │   └── layout/   # Layout elements (Header, Sidebar, Footer)
 │   │   └── pages/        # Route page views (Dashboard, Career, Study, Global, Profile)
 │   └── public/
@@ -124,7 +124,7 @@ pathloom/
 | **AI Career Coach** | Conversational career guidance | Not started | Requires Gemini API integration |
 | **5-Year Career Planner** | Multi-year progression timeline | Not started | No planner data model or logic |
 
-**Module 1 Completion: ~55%** (analysis, recommendations, comparison done; expanded to 74 roles across 15 domains with global salaries; AI coach and resume analyzer not started)
+**Module 1 Completion: ~60%** (analysis, recommendations, comparison, and Meridian UI/UX done; expanded to 74 roles across 15 domains with global salaries; AI coach and resume analyzer not started)
 
 ---
 
@@ -142,7 +142,7 @@ pathloom/
 | **AI Study Coach** | Conversational study guidance | Not started | Requires Gemini API integration |
 | **Academic Profile** | GPA, exam scores, document readiness | Done | Central profile setup (GPA scale conversion, score limits, doc checklists) |
 
-**Module 2 Completion: ~80%** (Profile, finder, scholarship, country strategy complete with massively expanded data; timelines and AI guide remaining)
+**Module 2 Completion: ~85%** (academic profile, finder, scholarship, country strategy complete with Meridian UI/UX; timelines and AI guide remaining)
 
 ---
 
@@ -150,13 +150,13 @@ pathloom/
 
 | Feature | Vision Description | Status | Implementation Details |
 |---------|-------------------|--------|----------------------|
-| **Country Recommendation Engine** | Best country based on profile | Done | Integrated Country Strategy page with match scoring for 20 countries |
+| **Country Recommendation Engine** | Best country based on profile | Done | Country strategy page with 20 countries, match scoring, and Meridian UX |
 | **Immigration Intelligence** | Work visa, PR, citizenship routes | Not started | Upcoming features listed |
 | **Migration Planner** | Step-by-step migration path | Not started | Upcoming features listed |
 | **Global Salary Ranking** | Highest paying countries ranking | Not started | Upcoming features listed |
 | **Opportunity Score** | Per-country composite score | Partial | Core country strategy metrics implemented (Safety index, PR score, top fields) |
 
-**Module 3 Completion: ~35%** (strategy page with 20 countries, scoring, visual previews done)
+**Module 3 Completion: ~40%** (strategy page with 20 countries, match scoring, previews, and Meridian UI/UX done)
 
 ---
 
@@ -231,26 +231,26 @@ pathloom/
 
 ## UI & Design System
 
-### "Linen" Design System (v2.1)
+### "Meridian" Design System (v2.2)
 
-The frontend was completely redesigned in July 2026 from a generic SaaS look to a warm, distinctive, productivity-focused aesthetic.
+The frontend was completely redesigned in July 2026 to introduce a premium, data-dense "Meridian" design language centered on glassmorphism, radial gauge metrics, and gradient section accents.
 
-- **Typography:** Plus Jakarta Sans (headings/body), JetBrains Mono (data labels)
-- **Theme Support:** Full dark/light mode with system preference detection and localStorage persistence
-- **Section Accents:** Each module has a dedicated accent color:
-  - Career: Warm amber (#C67D3A light / #D99A5C dark)
-  - Study: Sage green (#3A8A6E light / #5DB896 dark)
-  - Global: Slate blue (#4A72A8 light / #6B9AD4 dark)
-  - Profile: Muted violet (#7C6BA8 light / #A08ED0 dark)
-- **Layout:** Fixed header with theme toggle, collapsible sidebar with icon-only mode, section-colored active indicators
-- **Component library:** Panel, Button, ThemeToggle, ThreadGauge, StatCard, Alert, ChipGroup, EmptyState, SearchInput, Select, StatusBadge
+- **Typography:** Space Grotesk (headings/display), Inter (body), JetBrains Mono (data labels)
+- **Theme Support:** Full dark/light mode with system preference detection, localStorage persistence, and navy base dark mode
+- **Section Accents:** Each module has dedicated gradient accent pairs:
+  - Career: Amber (#F59E0B) → Rose (#EF4444)
+  - Study: Emerald (#10B981) → Cyan (#06B6D4)
+  - Global: Indigo (#6366F1) → Violet (#8B5CF6)
+  - Profile: Pink (#EC4899) → Orange (#F97316)
+- **Layout:** Frosted glass header, collapsible sidebar with active glow indicators, responsive adaptive sidebar
+- **Component library:** Panel (glass/accent), Button, ThemeToggle, ThreadGauge, RadialGauge (SVG circles), GlowBadge, StatCard, Alert, ChipGroup, EmptyState (floating shapes), SearchInput, Select, StatusBadge
 
 ### Component Structure
 
 | Category | Components |
 |----------|-----------|
 | **Layout** | Header, Sidebar, Footer |
-| **UI Primitives** | Panel, Button, ThemeToggle, ThreadGauge, StatCard, Alert, EmptyState, SearchInput, Select, StatusBadge, ChipGroup |
+| **UI Primitives** | Panel, Button, ThemeToggle, ThreadGauge, RadialGauge, GlowBadge, StatCard, Alert, EmptyState, SearchInput, Select, StatusBadge, ChipGroup |
 | **Contexts** | ApiContext, ProfileContext, ThemeContext |
 | **Pages** | DashboardPage, CareerAnalysisPage, CareerRecommendPage, CareerComparePage, StudyProfilePage, UniversityFinderPage, ScholarshipPage, CountryStrategyPage, GlobalOpportunityPage, ProfilePage, NotFoundPage |
 
@@ -277,6 +277,7 @@ The frontend was completely redesigned in July 2026 from a generic SaaS look to 
 | Jul 5 | Architecture docs | Complete documentation suite (12 docs) |
 | Jul 9-10 | Linen UI redesign | Complete visual overhaul — 30+ files, dark/light themes, section accents |
 | Jul 10-12 | Data expansion | 74 roles, 140 skills, 58 universities, 45 scholarships, 20 countries |
+| Jul 13 | Meridian UI/UX Redesign | Complete visual overhaul to "Meridian" with glassmorphism, SVG radial gauges, gradients, and custom components across all 11 pages |
 
 ### What's Next
 
@@ -318,15 +319,15 @@ The frontend was completely redesigned in July 2026 from a generic SaaS look to 
 
 | Module | Completion | Notes |
 |--------|-----------|-------|
-| Module 1: Career Intelligence | ~55% | Core pages + 74 roles across 15 domains with global USD salaries |
-| Module 2: Study Intelligence | ~80% | Full dataset with 58 universities, 45 scholarships, 20 countries |
-| Module 3: Global Opportunity | ~35% | Country strategy page with 20 countries |
+| Module 1: Career Intelligence | ~60% | Core pages + 74 roles across 15 domains with global USD salaries + Meridian UX |
+| Module 2: Study Intelligence | ~85% | Full dataset with 58 universities, 45 scholarships, 20 countries + Meridian UX |
+| Module 3: Global Opportunity | ~40% | Country strategy page with 20 countries + Meridian UX |
 | Module 4: AI Future Planner | 0% | Not started |
-| **Infrastructure** | ~55% | Router + Contexts + Design System + Theme + PostgreSQL schemas prepared |
+| **Infrastructure** | ~60% | Router + Contexts + Meridian Design System + Theme + PostgreSQL schemas prepared |
 | **Data Completeness** | ~70% | Comprehensive career, university, scholarship, and country data |
 | **AI Integration** | ~5% | Template-based placeholders |
 
-### **Overall Estimated Completion: ~45%**
+### **Overall Estimated Completion: ~50%**
 
 ---
 

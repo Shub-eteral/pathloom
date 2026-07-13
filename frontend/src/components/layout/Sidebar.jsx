@@ -1,4 +1,4 @@
-/* Sidebar — section-colored navigation with pill-shaped active indicator */
+/* Sidebar — section-colored navigation with gradient pill active indicators */
 import { NavLink } from 'react-router-dom';
 import {
   HomeIcon, BriefcaseIcon, SparklesIcon, ChartBarIcon,

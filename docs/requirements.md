@@ -35,9 +35,13 @@ Pathloom follows a client-server architecture with a React frontend consuming a 
 
 ### Frontend Design System
 
-- **Fonts:** Space Grotesk (display), IBM Plex Sans (body), IBM Plex Mono (data/code)
-- **Colors:** Canvas #F5F6F9, Indigo #232C52, Brass #AD7F2C, Rust #AE4F37, Teal #1F6F61
-- **Signature element:** "Thread gauge" — woven measuring tape progress bars
+- **Fonts:** Space Grotesk (headings/display), Inter (body), JetBrains Mono (data/code)
+- **Colors:** Meridian gradient accent system:
+  - Career: Amber `#F59E0B` → Rose `#EF4444`
+  - Study: Emerald `#10B981` → Cyan `#06B6D4`
+  - Global: Indigo `#6366F1` → Violet `#8B5CF6`
+  - Profile: Pink `#EC4899` → Orange `#F97316`
+- **Signature elements:** Frosted glass panels (`backdrop-filter`), SVG-based circular **Radial Gauges**, and section-accented gradients.
 
 ---
 

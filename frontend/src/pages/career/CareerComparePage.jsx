@@ -1,10 +1,12 @@
-/* CareerComparePage — side-by-side career comparison with warm table styling */
+/* CareerComparePage — side-by-side career comparison with animated gradient bars */
 import usePageTitle from '../../hooks/usePageTitle';
 import useCareerAnalysis from '../../hooks/useCareerAnalysis';
 import Panel, { PanelHead } from '../../components/ui/Panel';
+import RadialGauge from '../../components/ui/RadialGauge';
 import ThreadGauge from '../../components/ui/ThreadGauge';
 import EmptyState from '../../components/ui/EmptyState';
 import ComparisonChart from '../../components/ComparisonChart';
+import { ChartBarIcon } from '../../components/icons/Icons';
 
 export default function CareerComparePage() {
   usePageTitle('Compare Careers');
@@ -22,6 +24,7 @@ export default function CareerComparePage() {
       {comparisonData.length === 0 ? (
         <Panel className="p-6">
           <EmptyState
+            icon={<ChartBarIcon className="w-10 h-10" />}
             title="No comparison data"
             body="Run the career recommendation engine first. Your top matches will appear here for comparison."
           />
@@ -30,26 +33,45 @@ export default function CareerComparePage() {
         <>
           {/* Best Career Hero */}
           {bestCareer && (
-            <div className="pl-hero p-6">
-              <div className="pl-label" style={{ color: 'rgba(255,255,255,0.65)' }}>Recommended Career</div>
-              <h2 className="pl-hero-role mt-1">{bestCareer.role_name}</h2>
-              <p className="mt-2 text-lg font-semibold">Match Score: {bestCareer.readiness_score}%</p>
-              <div className="mt-4 text-sm space-y-1 pl-mono opacity-90">
-                <p>Salary: <span className="font-semibold">{bestCareer.salary}</span></p>
-                <p>Demand: <span className="font-semibold">{bestCareer.demand}</span></p>
-                <p>Difficulty: <span className="font-semibold">{bestCareer.difficulty}</span></p>
-                <p>Learning Time: <span className="font-semibold">{bestCareer.learning_time}</span></p>
-              </div>
-              <div className="mt-4 rounded-lg p-3 text-sm font-medium"
-                   style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(4px)' }}>
-                Highest readiness score among compared careers and strongest alignment with your current skills.
+            <div className="pl-hero p-6 md:p-8">
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-6">
+                <RadialGauge
+                  value={bestCareer.readiness_score}
+                  size={110}
+                  strokeWidth={7}
+                  tone="success"
+                  className="shrink-0"
+                />
+                <div className="flex-1">
+                  <div className="pl-label" style={{ color: 'rgba(255,255,255,0.65)' }}>Recommended Career</div>
+                  <h2 className="pl-hero-role mt-1">{bestCareer.role_name}</h2>
+
+                  <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                      { label: 'Salary', value: bestCareer.salary },
+                      { label: 'Demand', value: bestCareer.demand },
+                      { label: 'Difficulty', value: bestCareer.difficulty },
+                      { label: 'Learning Time', value: bestCareer.learning_time },
+                    ].map((stat) => (
+                      <div key={stat.label} className="pl-stat pl-stat--hero p-3">
+                        <span className="pl-stat-label">{stat.label}</span>
+                        <strong className="pl-stat-value">{stat.value}</strong>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-4 rounded-xl p-3 text-sm font-medium"
+                    style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(4px)' }}>
+                    Highest readiness score among compared careers and strongest alignment with your current skills.
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
           {/* Chart */}
           <Panel className="p-6">
-            <h2 className="pl-panel-title mb-4">Readiness Comparison</h2>
+            <h2 className="pl-panel-title mb-5">Readiness Comparison</h2>
             <ComparisonChart data={comparisonData} />
           </Panel>
 

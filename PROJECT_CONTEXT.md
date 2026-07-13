@@ -2,7 +2,7 @@
 
 > **Living Document** — A single-file snapshot of the entire project state.  
 > Designed for AI agents, new developers, and anyone needing rapid orientation.  
-> **Last Updated:** July 12, 2026
+> **Last Updated:** July 13, 2026
 
 ---
 
@@ -15,12 +15,12 @@
 | **Tagline** | *"From Where You Are -> To Where You Want To Be"* |
 | **Purpose** | AI-powered Career, Study & Global Opportunity Intelligence Platform |
 | **Core Question** | *"Given who I am today, what is the best path to the future I want?"* |
-| **Version** | v2.1 |
+| **Version** | v2.2 |
 | **Status** | In Development |
 | **Started** | June 18, 2026 |
 | **Target Launch** | August 2026 |
 | **Dev Days Elapsed** | ~24 of 40 |
-| **Overall Completion** | ~45% |
+| **Overall Completion** | ~50% |
 
 ---
 
@@ -30,8 +30,8 @@
 |-------|-----------|---------|--------|
 | **Frontend Framework** | React | 19.2.6 | Active |
 | **Routing** | React Router | 7.x | Active |
-| **Build Tool** | Vite | 8.0.12 | Active |
-| **CSS** | Custom Design System ("Linen") | v2.1 | Active |
+| **Build Tool** | Vite | 8.0.16 | Active |
+| **CSS** | Custom Design System ("Meridian") | v2.2 | Active |
 | **Backend Framework** | FastAPI (Python) | Latest | Active |
 | **ASGI Server** | Uvicorn | Latest | Active |
 | **Database (Current)** | CSV flat files | -- | Active (temporary) |
@@ -47,9 +47,9 @@
 
 | Module | Completion | What Works | What's Missing |
 |--------|-----------|------------|----------------|
-| **Career Intelligence** | ~55% | Analysis, recommendations, comparison, readiness scoring, 74 roles across 15 domains, global USD salaries | AI coach, resume analyzer, 5-year planner, market trends |
-| **Study Intelligence** | ~80% | Academic profile, university finder (58 universities), admission predictor, scholarship matching (45 scholarships), country strategy (20 countries), 43 career goals | Study roadmap, visa planner, AI study coach |
-| **Global Opportunity** | ~35% | Country strategy with 20 countries, match scoring, upcoming feature previews | Immigration intelligence, migration planner, global salary, opportunity scoring |
+| **Career Intelligence** | ~60% | Analysis, recommendations, comparison, readiness scoring, 74 roles across 15 domains, global USD salaries, Meridian UX integration | AI coach, resume analyzer, 5-year planner, market trends |
+| **Study Intelligence** | ~85% | Academic profile, university finder (58 universities), admission predictor, scholarship matching (45 scholarships), country strategy (20 countries), 43 career goals, Meridian UX integration | Study roadmap, visa planner, AI study coach |
+| **Global Opportunity** | ~40% | Country strategy with 20 countries, match scoring, upcoming feature previews, Meridian UX integration | Immigration intelligence, migration planner, global salary, opportunity scoring |
 | **AI Future Planner** | 0% | Nothing | Everything (requires all other modules + Gemini API) |
 
 ---
@@ -66,7 +66,7 @@ Career intelligence data served via REST API from CSV files
 
 **Key architecture facts:**
 - **Modular Frontend Architecture:** Decomposed into nested folders (`components/ui/`, `components/layout/`, `contexts/`, `hooks/`, `pages/`).
-- **"Linen" Design System:** Custom CSS token system with dark/light themes, section-contextual accent colors (Career=amber, Study=green, Global=blue, Profile=violet).
+- **"Meridian" Design System:** Custom CSS token system with radial gauges, glassmorphic panels, gradient section accents (Career=amber→rose, Study=emerald→cyan, Global=indigo→violet, Profile=pink→orange).
 - **Page-Based Navigation:** React Router 7 with 11 routes, section-aware class wrapping in App.jsx.
 - **Fixed Sidebar Layout:** Collapsible sidebar toggleable by clicking the header logo, icon-only mode.
 - **Theme System:** ThemeContext with dark/light toggle, system preference detection, localStorage persistence.
@@ -81,16 +81,16 @@ Career intelligence data served via REST API from CSV files
 
 | Route | Page Component | Description |
 |-------|----------------|-------------|
-| `/` | `DashboardPage` | Overview hub with profile completeness and navigation cards |
-| `/career` | `CareerAnalysisPage` | Target role selection and skills-readiness fit analysis |
-| `/career/recommend` | `CareerRecommendPage` | Recommended alternative paths with AI insights |
-| `/career/compare` | `CareerComparePage` | Side-by-side career comparison dashboard and chart |
+| `/` | `DashboardPage` | Command center with radial profile completeness gauge and module cards |
+| `/career` | `CareerAnalysisPage` | Target role selection, skills-readiness fit analysis with radial gauges |
+| `/career/recommend` | `CareerRecommendPage` | Recommended alternative paths with AI insights and comparison |
+| `/career/compare` | `CareerComparePage` | Side-by-side career comparison dashboard and animated bar charts |
 | `/study` | `StudyProfilePage` | Detailed academic profile, test scores, and doc checklist |
 | `/study/universities` | `UniversityFinderPage` | Filterable university search and admission eligibility predictor |
-| `/study/scholarships` | `ScholarshipPage` | Scholarship match scoring and application tips |
+| `/study/scholarships` | `ScholarshipPage` | Scholarship match scoring and application recommendations |
 | `/study/countries` | `CountryStrategyPage` | Multi-destination category scoring (Safe/Target/Reach) |
-| `/global` | `GlobalOpportunityPage` | Global opportunity planner preview |
-| `/profile` | `ProfilePage` | Global profile overview, export, import, and data reset |
+| `/global` | `GlobalOpportunityPage` | Global opportunity planner preview with animated orb |
+| `/profile` | `ProfilePage` | Global profile completeness radial gauge, export, import, and data reset |
 
 ---
 
@@ -120,11 +120,11 @@ Career intelligence data served via REST API from CSV files
 ### Frontend Architecture
 - **`frontend/src/App.jsx`** — Main application shell, routing definitions, section-aware class wrapping
 - **`frontend/src/main.jsx`** — Wrap application in BrowserRouter, ThemeProvider, ApiProvider, and ProfileProvider
-- **`frontend/src/styles/design-system.css`** — Centralized "Linen" design system (500+ lines of tokens, dark/light themes)
-- **`frontend/src/index.css`** — Typography setup (Plus Jakarta Sans, JetBrains Mono)
+- **`frontend/src/styles/design-system.css`** — Centralized "Meridian" design system (990+ lines of custom tokens, radial gauges, layouts)
+- **`frontend/src/index.css`** — Typography setup (Space Grotesk, Inter, JetBrains Mono)
 - **`frontend/src/contexts/`** — `ApiContext.jsx`, `ProfileContext.jsx`, `ThemeContext.jsx`
 - **`frontend/src/hooks/`** — `useCareerAnalysis.js`, `useStudyEligibility.js`, `useProfileExport.js`, `usePageTitle.js`
-- **`frontend/src/components/ui/`** — 11 UI primitive components (Panel, Button, ThemeToggle, ThreadGauge, etc.)
+- **`frontend/src/components/ui/`** — UI primitive components (Panel, Button, ThemeToggle, ThreadGauge, RadialGauge, GlowBadge, etc.)
 - **`frontend/src/components/layout/`** — Layout structure (Header, Sidebar, Footer)
 - **`frontend/src/pages/`** — Page views for Career, Study, Global, Dashboard, Profile
 
@@ -138,26 +138,27 @@ Career intelligence data served via REST API from CSV files
 
 ---
 
-## Design System: "Linen"
+## Design System: "Meridian"
 
-The "Linen" design system replaced the original "Thread Gauge" system in July 2026.
+The "Meridian" design system replaced the "Linen" system in July 2026.
 
 **Typography:**
-- Plus Jakarta Sans (display/headings) — soft rounded terminals
+- Space Grotesk (display/headings) — clean, modern, mathematical feel
+- Inter (body) — maximum readability
 - JetBrains Mono (data labels/stats) — monospaced for precision
 
-**Section Accent Colors:**
+**Section Accent Gradients:**
 
-| Section | Light Mode | Dark Mode |
-|---------|-----------|-----------|
-| Career | #C67D3A (amber) | #D99A5C |
-| Study | #3A8A6E (green) | #5DB896 |
-| Global | #4A72A8 (blue) | #6B9AD4 |
-| Profile | #7C6BA8 (violet) | #A08ED0 |
+| Section | Light Mode Gradient | Dark Mode Gradient |
+|---------|---------------------|--------------------|
+| Career | Amber → Rose | Amber → Rose |
+| Study | Emerald → Cyan | Emerald → Cyan |
+| Global | Indigo → Violet | Indigo → Violet |
+| Profile | Pink → Orange | Pink → Orange |
 
 **Theme:** Dark/light mode with system preference detection and localStorage persistence. Sun/moon toggle in header.
 
-**Layout:** Fixed header with accent gradient line, collapsible sidebar with pill-shaped active indicators, minimal footer.
+**Layout:** Frosted glass header with `backdrop-filter: blur`, collapsible sidebar with glow pill indicators, section-accented gradients and radial gauge scores.
 
 ---
 
@@ -171,6 +172,7 @@ The "Linen" design system replaced the original "Thread Gauge" system in July 20
 | Medium | No test coverage (zero tests) | Planned |
 | Medium | CORS wildcard `allow_origins=["*"]` | Planned |
 | Low | Countries/universities duplicated between backend CSV and frontend JS | Planned |
+| Low | No error boundaries in frontend | Planned |
 
 ---
 
@@ -207,13 +209,12 @@ Backend: http://127.0.0.1:8000 · Frontend: http://localhost:5173
 
 ## Active Development Focus
 
-**Currently working on:** Data quality improvements and backend expansion
+**Currently working on:** Planning Supabase PostgreSQL migration & Gemini API integration
 
 **Recently completed:**
-1. Complete UI redesign ("Linen" design system) with dark/light theme support
-2. Massive data expansion (74 roles, 140 skills, 58 universities, 45 scholarships, 20 countries)
-3. All role-skill mappings completed (450+ mappings)
-4. Global USD salary data for all 74 roles
+1. Complete UI/UX redesign ("Meridian" design system) with glassmorphism, radial progress gauges, and gradient aesthetics
+2. Complete page layouts and component system restyling across all 11 pages
+3. Expanded data set integration for roles, skills, universities, scholarships, and countries
 
 **Next priorities:**
 1. Migrate from CSV flat files to PostgreSQL database (Supabase)

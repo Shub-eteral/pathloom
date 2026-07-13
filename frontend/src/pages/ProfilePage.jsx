@@ -1,11 +1,11 @@
-/* ProfilePage — profile overview, export/import with violet accent */
+/* ProfilePage — profile overview with radial gauge centerpiece */
 import { useApi } from '../contexts/ApiContext';
 import usePageTitle from '../hooks/usePageTitle';
 import { useProfile } from '../contexts/ProfileContext';
 import useProfileExport from '../hooks/useProfileExport';
 import Panel, { PanelHead } from '../components/ui/Panel';
 import Button from '../components/ui/Button';
-import ThreadGauge from '../components/ui/ThreadGauge';
+import RadialGauge from '../components/ui/RadialGauge';
 import StatCard from '../components/ui/StatCard';
 
 export default function ProfilePage() {
@@ -30,13 +30,27 @@ export default function ProfilePage() {
         </p>
       </div>
 
-      {/* Completeness */}
-      <Panel className="p-5" accent>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="pl-panel-title">Profile Completeness</h3>
-          <span className="pl-mono font-bold text-lg" style={{ color: completeness >= 70 ? 'var(--success)' : 'var(--warning)' }}>{completeness}%</span>
+      {/* Completeness — radial gauge centerpiece */}
+      <Panel className="p-6 md:p-8" accent>
+        <div className="flex flex-col sm:flex-row items-center gap-6">
+          <RadialGauge
+            value={completeness}
+            size={120}
+            strokeWidth={8}
+            label="Complete"
+            tone={completeness >= 70 ? 'success' : completeness >= 40 ? 'warning' : 'danger'}
+          />
+          <div className="flex-1 text-center sm:text-left">
+            <h3 className="pl-panel-title text-lg">Profile Completeness</h3>
+            <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+              {completeness >= 70
+                ? "Great job! Your profile is well-filled. The more data you add, the better your matches."
+                : completeness >= 40
+                ? "Good progress! Fill in more details for better university and scholarship matching."
+                : "Just getting started. Complete your career and academic profile for the best results."}
+            </p>
+          </div>
         </div>
-        <ThreadGauge value={completeness} tone={completeness >= 70 ? "success" : completeness >= 40 ? "warning" : "danger"} size="lg" />
       </Panel>
 
       {/* Overview Grid */}

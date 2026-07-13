@@ -6,6 +6,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.2] — July 13, 2026
+
+### Added
+- **"Meridian" Design System** — Glassmorphic styling with backdrop-filter, radial progress gauges, and custom components
+- **RadialGauge Component** — SVG-based circular progress gauge with animated draw-in and customizable size/tone
+- **GlowBadge Component** — Animated status badge with soft glow pulse for Safe/Target/Reach tiers
+- **Breadcrumb Section Indicator** — Navigation state indicator in header showing active section with glowing status dots
+- **Decorative Mesh Gradients** — Custom gradient backgrounds shifting based on active section
+
+### Improved
+- **All 11 Page Templates** — Redesigned layouts with glass panels, staggered reveal animations, and optimized hierarchy
+- **Navigation Components** — Redesigned header, collapsible sidebar, and links footer to match Meridian layout
+- **Comparison Chart** — Replaced flat bar indicators with animated, gradient-filled comparison bars
+- **Empty State Views** — Custom floating decorative geometric shapes and radial glowing meshes
+
+---
+
+## [v2.1] — July 12, 2026
+
+### Added
+- **Massive Data Expansion** — Extended catalog to 74 roles across 15 domains, 140 skills, 58 universities, 45 scholarships, and 20 countries
+- **Global Salary Coverage** — Mapped global USD salary ranges for all 74 roles
+- **Expanded Skill Mapping** — Mapped 450+ role-skill mappings with weighted importance scales
+
+---
+
+## [v2.0] — July 10, 2026
+
+### Added
+- **"Linen" Design System** — Transitioned from Thread Gauge theme to custom CSS token system with section accents and theme toggle support
+
+---
+
 ## [v0.82] — June 20, 2026
 
 ### Added
